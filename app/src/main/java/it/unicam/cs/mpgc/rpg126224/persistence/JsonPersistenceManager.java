@@ -7,7 +7,7 @@ import java.util.*;
 
 /**
  * JSON-based implementation of PersistenceManager.
- * Serializes and deserializes the full GameState without external libraries.
+ * Uses a line-by-line flat format for reliable save/load.
  */
 public class JsonPersistenceManager implements PersistenceManager {
 
@@ -18,84 +18,74 @@ public class JsonPersistenceManager implements PersistenceManager {
     public void saveGame(GameState state) {
         try {
             Files.createDirectories(Paths.get(SAVE_DIR));
-            StringBuilder sb = new StringBuilder();
-            sb.append("{\n");
-
             Hero hero = state.getHero();
-            sb.append("  \"heroId\": \"").append(escape(hero.getId())).append("\",\n");
-            sb.append("  \"heroName\": \"").append(escape(hero.getName())).append("\",\n");
-            sb.append("  \"heroClass\": \"").append(hero.getHeroClass().name()).append("\",\n");
-            sb.append("  \"heroHp\": ").append(hero.getCurrentHp()).append(",\n");
-            sb.append("  \"heroMaxHp\": ").append(hero.getMaxHp()).append(",\n");
-            sb.append("  \"heroAttack\": ").append(hero.getAttack()).append(",\n");
-            sb.append("  \"heroDefense\": ").append(hero.getDefense()).append(",\n");
-            sb.append("  \"heroMagic\": ").append(hero.getMagic()).append(",\n");
-            sb.append("  \"heroLevel\": ").append(hero.getLevel()).append(",\n");
-            sb.append("  \"heroXp\": ").append(hero.getExperience()).append(",\n");
-            sb.append("  \"heroRow\": ").append(hero.getRow()).append(",\n");
-            sb.append("  \"heroCol\": ").append(hero.getCol()).append(",\n");
+            Dungeon dungeon = state.getDungeon();
 
-            sb.append("  \"inventory\": [\n");
+            StringBuilder sb = new StringBuilder();
+            sb.append("heroId=").append(hero.getId()).append("\n");
+            sb.append("heroName=").append(hero.getName()).append("\n");
+            sb.append("heroClass=").append(hero.getHeroClass().name()).append("\n");
+            sb.append("heroHp=").append(hero.getCurrentHp()).append("\n");
+            sb.append("heroMaxHp=").append(hero.getMaxHp()).append("\n");
+            sb.append("heroAttack=").append(hero.getAttack()).append("\n");
+            sb.append("heroDefense=").append(hero.getDefense()).append("\n");
+            sb.append("heroMagic=").append(hero.getMagic()).append("\n");
+            sb.append("heroLevel=").append(hero.getLevel()).append("\n");
+            sb.append("heroXp=").append(hero.getExperience()).append("\n");
+            sb.append("heroRow=").append(hero.getRow()).append("\n");
+            sb.append("heroCol=").append(hero.getCol()).append("\n");
+            sb.append("dungeonLevel=").append(state.getDungeonLevel()).append("\n");
+            sb.append("gameOver=").append(state.isGameOver()).append("\n");
+            sb.append("victory=").append(state.isVictory()).append("\n");
+
+            // Inventory
             List<Item> inv = hero.getInventory();
+            sb.append("inventorySize=").append(inv.size()).append("\n");
             for (int i = 0; i < inv.size(); i++) {
                 Item item = inv.get(i);
-                sb.append("    {\"id\":\"").append(escape(item.getId()))
-                  .append("\",\"name\":\"").append(escape(item.getName()))
-                  .append("\",\"type\":\"").append(item.getType().name())
-                  .append("\",\"value\":").append(item.getValue()).append("}");
-                if (i < inv.size() - 1) sb.append(",");
-                sb.append("\n");
+                sb.append("inv_").append(i).append("_id=").append(item.getId()).append("\n");
+                sb.append("inv_").append(i).append("_name=").append(item.getName()).append("\n");
+                sb.append("inv_").append(i).append("_type=").append(item.getType().name()).append("\n");
+                sb.append("inv_").append(i).append("_value=").append(item.getValue()).append("\n");
             }
-            sb.append("  ],\n");
 
-            Dungeon dungeon = state.getDungeon();
-            sb.append("  \"dungeonRows\": ").append(dungeon.getRows()).append(",\n");
-            sb.append("  \"dungeonCols\": ").append(dungeon.getCols()).append(",\n");
-            sb.append("  \"rooms\": [\n");
-            boolean firstRoom = true;
+            // Dungeon
+            sb.append("dungeonRows=").append(dungeon.getRows()).append("\n");
+            sb.append("dungeonCols=").append(dungeon.getCols()).append("\n");
+
             for (int r = 0; r < dungeon.getRows(); r++) {
                 for (int c = 0; c < dungeon.getCols(); c++) {
                     Room room = dungeon.getRoom(r, c);
-                    if (!firstRoom) sb.append(",\n");
-                    firstRoom = false;
-                    sb.append("    {");
-                    sb.append("\"row\":").append(r).append(",");
-                    sb.append("\"col\":").append(c).append(",");
-                    sb.append("\"type\":\"").append(room.getType().name()).append("\",");
-                    sb.append("\"visited\":").append(room.isVisited()).append(",");
-                    sb.append("\"cleared\":").append(room.isCleared()).append(",");
+                    String prefix = "room_" + r + "_" + c + "_";
+                    sb.append(prefix).append("type=").append(room.getType().name()).append("\n");
+                    sb.append(prefix).append("visited=").append(room.isVisited()).append("\n");
+                    sb.append(prefix).append("cleared=").append(room.isCleared()).append("\n");
 
-                    sb.append("\"enemies\":[");
                     List<Enemy> enemies = room.getEnemies();
+                    sb.append(prefix).append("enemyCount=").append(enemies.size()).append("\n");
                     for (int i = 0; i < enemies.size(); i++) {
                         Enemy e = enemies.get(i);
-                        sb.append("{\"id\":\"").append(escape(e.getId()))
-                          .append("\",\"type\":\"").append(e.getType().name())
-                          .append("\",\"hp\":").append(e.getCurrentHp()).append("}");
-                        if (i < enemies.size() - 1) sb.append(",");
+                        String ep = prefix + "enemy_" + i + "_";
+                        sb.append(ep).append("id=").append(e.getId()).append("\n");
+                        sb.append(ep).append("type=").append(e.getType().name()).append("\n");
+                        sb.append(ep).append("hp=").append(e.getCurrentHp()).append("\n");
                     }
-                    sb.append("],");
 
-                    sb.append("\"items\":[");
                     List<Item> items = room.getItems();
+                    sb.append(prefix).append("itemCount=").append(items.size()).append("\n");
                     for (int i = 0; i < items.size(); i++) {
                         Item item = items.get(i);
-                        sb.append("{\"id\":\"").append(escape(item.getId()))
-                          .append("\",\"name\":\"").append(escape(item.getName()))
-                          .append("\",\"type\":\"").append(item.getType().name())
-                          .append("\",\"value\":").append(item.getValue()).append("}");
-                        if (i < items.size() - 1) sb.append(",");
+                        String ip = prefix + "item_" + i + "_";
+                        sb.append(ip).append("id=").append(item.getId()).append("\n");
+                        sb.append(ip).append("name=").append(item.getName()).append("\n");
+                        sb.append(ip).append("type=").append(item.getType().name()).append("\n");
+                        sb.append(ip).append("value=").append(item.getValue()).append("\n");
                     }
-                    sb.append("]}");
                 }
             }
-            sb.append("\n  ],\n");
-            sb.append("  \"gameOver\": ").append(state.isGameOver()).append(",\n");
-            sb.append("  \"victory\": ").append(state.isVictory()).append(",\n");
-            sb.append("  \"dungeonLevel\": ").append(state.getDungeonLevel()).append("\n");
-            sb.append("}");
 
             Files.writeString(Paths.get(SAVE_FILE), sb.toString());
+
         } catch (IOException e) {
             System.err.println("Failed to save game: " + e.getMessage());
         }
@@ -106,8 +96,14 @@ public class JsonPersistenceManager implements PersistenceManager {
         Path path = Paths.get(SAVE_FILE);
         if (!Files.exists(path)) return Optional.empty();
         try {
-            String json = Files.readString(path);
-            return Optional.of(parseGameState(json));
+            Map<String, String> data = new HashMap<>();
+            for (String line : Files.readAllLines(path)) {
+                int eq = line.indexOf('=');
+                if (eq > 0) {
+                    data.put(line.substring(0, eq), line.substring(eq + 1));
+                }
+            }
+            return Optional.of(parseGameState(data));
         } catch (Exception e) {
             System.err.println("Failed to load game: " + e.getMessage());
             return Optional.empty();
@@ -128,135 +124,104 @@ public class JsonPersistenceManager implements PersistenceManager {
         }
     }
 
-    private GameState parseGameState(String json) {
-        String heroId       = extractString(json, "heroId");
-        String heroName     = extractString(json, "heroName");
-        HeroClass heroClass = HeroClass.valueOf(extractString(json, "heroClass"));
+    private GameState parseGameState(Map<String, String> d) {
+        String heroId    = d.get("heroId");
+        String heroName  = d.get("heroName");
+        HeroClass heroClass = HeroClass.valueOf(d.get("heroClass"));
 
         Hero hero = new Hero(heroId, heroName, heroClass);
-        hero.setCurrentHp(extractInt(json, "heroHp"));
-        hero.setPosition(extractInt(json, "heroRow"), extractInt(json, "heroCol"));
 
-        String invSection = extractArray(json, "inventory");
-        for (String itemJson : splitObjects(invSection)) {
+        // Restore HP
+        int savedHp = getInt(d, "heroHp");
+        if (savedHp > 0) hero.setCurrentHp(savedHp);
+
+        // Restore position
+        hero.setPosition(getInt(d, "heroRow"), getInt(d, "heroCol"));
+
+        // Restore stats directly
+        int savedAttack  = getInt(d, "heroAttack");
+        int savedDefense = getInt(d, "heroDefense");
+        int savedMagic   = getInt(d, "heroMagic");
+        int savedLevel   = getInt(d, "heroLevel");
+        int savedXp      = getInt(d, "heroXp");
+
+        if (savedAttack  > 0) hero.boostAttack(savedAttack - hero.getAttack());
+        if (savedDefense > 0) hero.boostDefense(savedDefense - hero.getDefense());
+        if (savedMagic   > 0) hero.boostMagic(savedMagic - hero.getMagic());
+        if (savedLevel   > 0) hero.setLevel(savedLevel);
+        if (savedXp      > 0) hero.setExperience(savedXp);
+
+        // Restore inventory
+        int invSize = getInt(d, "inventorySize");
+        for (int i = 0; i < invSize; i++) {
             hero.addItem(new Item(
-                    extractString(itemJson, "id"),
-                    extractString(itemJson, "name"),
-                    ItemType.valueOf(extractString(itemJson, "type")),
-                    extractInt(itemJson, "value")
+                    d.get("inv_" + i + "_id"),
+                    d.get("inv_" + i + "_name"),
+                    ItemType.valueOf(d.get("inv_" + i + "_type")),
+                    getInt(d, "inv_" + i + "_value")
             ));
         }
 
-        int dRows = extractInt(json, "dungeonRows");
-        int dCols = extractInt(json, "dungeonCols");
+        // Restore dungeon
+        int dRows = getInt(d, "dungeonRows");
+        int dCols = getInt(d, "dungeonCols");
         if (dRows <= 0) dRows = Dungeon.SIZE;
         if (dCols <= 0) dCols = Dungeon.SIZE;
         Dungeon dungeon = new Dungeon(dRows, dCols);
 
-        String roomsSection = extractArray(json, "rooms");
-        for (String roomJson : splitObjects(roomsSection)) {
-            int r = extractInt(roomJson, "row");
-            int c = extractInt(roomJson, "col");
-            RoomType rType = RoomType.valueOf(extractString(roomJson, "type"));
-            Room room = dungeon.getRoom(r, c);
-            room.setType(rType);
-            if (extractBool(roomJson, "visited")) room.markVisited();
-            if (extractBool(roomJson, "cleared")) room.markCleared();
+        for (int r = 0; r < dRows; r++) {
+            for (int c = 0; c < dCols; c++) {
+                String prefix = "room_" + r + "_" + c + "_";
+                String typeStr = d.get(prefix + "type");
+                if (typeStr == null) continue;
 
-            for (String eJson : splitObjects(extractArray(roomJson, "enemies"))) {
-                Enemy enemy = new Enemy(
-                        extractString(eJson, "id"),
-                        EnemyType.valueOf(extractString(eJson, "type"))
-                );
-                enemy.setCurrentHp(extractInt(eJson, "hp"));
-                room.addEnemy(enemy);
-            }
+                Room room = dungeon.getRoom(r, c);
+                room.setType(RoomType.valueOf(typeStr));
+                if (getBool(d, prefix + "visited")) room.markVisited();
+                if (getBool(d, prefix + "cleared")) room.markCleared();
 
-            for (String iJson : splitObjects(extractArray(roomJson, "items"))) {
-                room.addItem(new Item(
-                        extractString(iJson, "id"),
-                        extractString(iJson, "name"),
-                        ItemType.valueOf(extractString(iJson, "type")),
-                        extractInt(iJson, "value")
-                ));
+                int enemyCount = getInt(d, prefix + "enemyCount");
+                for (int i = 0; i < enemyCount; i++) {
+                    String ep = prefix + "enemy_" + i + "_";
+                    Enemy enemy = new Enemy(
+                            d.get(ep + "id"),
+                            EnemyType.valueOf(d.get(ep + "type"))
+                    );
+                    int eHp = getInt(d, ep + "hp");
+                    if (eHp > 0) enemy.setCurrentHp(eHp);
+                    room.addEnemy(enemy);
+                }
+
+                int itemCount = getInt(d, prefix + "itemCount");
+                for (int i = 0; i < itemCount; i++) {
+                    String ip = prefix + "item_" + i + "_";
+                    room.addItem(new Item(
+                            d.get(ip + "id"),
+                            d.get(ip + "name"),
+                            ItemType.valueOf(d.get(ip + "type")),
+                            getInt(d, ip + "value")
+                    ));
+                }
             }
         }
 
         GameState state = new GameState(hero, dungeon);
-        int dungeonLevel = extractInt(json, "dungeonLevel");
+        int dungeonLevel = getInt(d, "dungeonLevel");
         if (dungeonLevel > 1) state.setDungeonLevel(dungeonLevel);
-        if (extractBool(json, "victory"))      state.setVictory();
-        else if (extractBool(json, "gameOver")) state.setGameOver();
+        if (getBool(d, "victory"))       state.setVictory();
+        else if (getBool(d, "gameOver")) state.setGameOver();
 
         return state;
     }
 
-    private String extractString(String json, String key) {
-        String pattern = "\"" + key + "\"";
-        int idx = json.indexOf(pattern);
-        if (idx < 0) return "";
-        int colon = json.indexOf(':', idx);
-        int start = json.indexOf('"', colon + 1) + 1;
-        int end   = json.indexOf('"', start);
-        return json.substring(start, end);
+    private int getInt(Map<String, String> d, String key) {
+        String val = d.get(key);
+        if (val == null || val.isBlank()) return 0;
+        try { return Integer.parseInt(val.trim()); }
+        catch (NumberFormatException e) { return 0; }
     }
 
-    private int extractInt(String json, String key) {
-        String pattern = "\"" + key + "\"";
-        int idx = json.indexOf(pattern);
-        if (idx < 0) return 0;
-        int colon = json.indexOf(':', idx) + 1;
-        int end = colon;
-        while (end < json.length() &&
-               (Character.isDigit(json.charAt(end)) || json.charAt(end) == '-'))
-            end++;
-        String val = json.substring(colon, end).trim();
-        return val.isEmpty() ? 0 : Integer.parseInt(val);
-    }
-
-    private boolean extractBool(String json, String key) {
-        String pattern = "\"" + key + "\"";
-        int idx = json.indexOf(pattern);
-        if (idx < 0) return false;
-        int colon = json.indexOf(':', idx) + 1;
-        return json.substring(colon).trim().startsWith("true");
-    }
-
-    private String extractArray(String json, String key) {
-        String pattern = "\"" + key + "\"";
-        int idx = json.indexOf(pattern);
-        if (idx < 0) return "";
-        int start = json.indexOf('[', idx) + 1;
-        int depth = 1, i = start;
-        while (i < json.length() && depth > 0) {
-            char ch = json.charAt(i);
-            if (ch == '[') depth++;
-            else if (ch == ']') depth--;
-            i++;
-        }
-        return json.substring(start, i - 1);
-    }
-
-    private List<String> splitObjects(String arrayContent) {
-        List<String> result = new ArrayList<>();
-        int depth = 0, start = -1;
-        for (int i = 0; i < arrayContent.length(); i++) {
-            char ch = arrayContent.charAt(i);
-            if (ch == '{') {
-                if (depth == 0) start = i;
-                depth++;
-            } else if (ch == '}') {
-                depth--;
-                if (depth == 0 && start >= 0) {
-                    result.add(arrayContent.substring(start, i + 1));
-                    start = -1;
-                }
-            }
-        }
-        return result;
-    }
-
-    private String escape(String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"");
+    private boolean getBool(Map<String, String> d, String key) {
+        return "true".equals(d.get(key));
     }
 }

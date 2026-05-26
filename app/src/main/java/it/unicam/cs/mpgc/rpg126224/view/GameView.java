@@ -8,7 +8,11 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
+import javafx.stage.Stage;
+
+
 import java.util.List;
+import javafx.application.Platform;
 
 /**
  * Main game screen showing dungeon map, hero status and movement controls.
@@ -144,17 +148,32 @@ public class GameView extends BorderPane implements ViewRefreshable {
 
         if (!room.isCleared() && !room.getEnemies().isEmpty()) {
             Enemy enemy = room.getEnemies().get(0);
+            boolean isExitRoom = room.getType() == RoomType.EXIT;
             new CombatView(controller, enemy, () -> {
                 refresh();
-                if (controller.getCurrentState().isGameOver()) showGameOver();
-                else if (controller.checkExitCondition()) {
-                    if (controller.isVictory()) showVictory();
-                    else { showLevelAdvance(controller.getDungeonLevel()); refresh(); }
+                if (controller.getCurrentState().isGameOver()) {
+                    Platform.runLater(this::showGameOver);
+                    return;
+                }
+                if (isExitRoom && controller.getCurrentRoom().isCleared()) {
+                    if (controller.checkExitCondition()) {
+                        if (controller.isVictory()) {
+                            Platform.runLater(this::showVictory);
+                        } else {
+                            int level = controller.getDungeonLevel();
+                            Platform.runLater(() -> {
+                                showLevelAdvance(level);
+                                refresh();
+                            });
+                        }
+                    }
                 }
             }).show();
-        } else if (controller.checkExitCondition()) {
-            if (controller.isVictory()) showVictory();
-            else { showLevelAdvance(controller.getDungeonLevel()); refresh(); }
+        } else if (room.getType() == RoomType.EXIT && room.isCleared()) {
+            if (controller.checkExitCondition()) {
+                if (controller.isVictory()) showVictory();
+                else { showLevelAdvance(controller.getDungeonLevel()); refresh(); }
+            }
         }
     }
 
@@ -180,12 +199,52 @@ public class GameView extends BorderPane implements ViewRefreshable {
 
     private void showMessage(String msg) { messageLabel.setText(msg); }
 
-    private void showLevelAdvance(int newLevel) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Floor Cleared!");
-        alert.setHeaderText("You defeated the boss!");
-        alert.setContentText("Descending to floor " + newLevel + "...");
-        alert.showAndWait();
+        private void showLevelAdvance(int newLevel) {
+        Stage dialog = new Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.setTitle("Floor Cleared!");
+        dialog.setResizable(false);
+
+        VBox root = new VBox(20);
+        root.setAlignment(Pos.CENTER);
+        root.setPadding(new Insets(35));
+        root.setStyle("-fx-background-color: #0a0010;");
+
+        Label icon = new Label("⚔");
+        icon.setFont(Font.font(48));
+
+        Label title = new Label("FLOOR CLEARED!");
+        title.setFont(Font.font("Monospace", FontWeight.BOLD, 22));
+        title.setTextFill(Color.web("#ffd700"));
+
+        javafx.scene.effect.DropShadow glow =
+                new javafx.scene.effect.DropShadow(20, Color.web("#ffd700"));
+        title.setEffect(glow);
+
+        Label msg = new Label("You defeated the boss!");
+        msg.setFont(Font.font("Monospace", 14));
+        msg.setTextFill(Color.web("#e0e0ff"));
+
+        Label sub = new Label("Descending to floor " + newLevel + " of 3...");
+        sub.setFont(Font.font("Monospace", 12));
+        sub.setTextFill(Color.web("#8080b0"));
+
+        Button okBtn = new Button("CONTINUE");
+        okBtn.setStyle("-fx-background-color: #8a6a00; -fx-text-fill: #ffd700; " +
+                "-fx-font-family: Monospace; -fx-font-size: 13; -fx-padding: 8 30; " +
+                "-fx-background-radius: 4;");
+        okBtn.setOnAction(e -> dialog.close());
+
+        root.getChildren().addAll(icon, title, msg, sub, okBtn);
+
+        javafx.animation.FadeTransition ft =
+                new javafx.animation.FadeTransition(javafx.util.Duration.millis(400), root);
+        ft.setFromValue(0);
+        ft.setToValue(1);
+
+        dialog.setScene(new javafx.scene.Scene(root, 380, 280));
+        ft.play();
+        dialog.showAndWait();
     }
 
     private void showGameOver() {

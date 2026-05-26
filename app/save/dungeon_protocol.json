@@ -1,89 +1,439 @@
-{
-  "heroId": "1ff5c5b2-2761-46a6-bafa-db6a4bfec340",
-  "heroName": "rrrr",
-  "heroClass": "WARRIOR",
-  "heroHp": 82,
-  "heroMaxHp": 150,
-  "heroAttack": 24,
-  "heroDefense": 12,
-  "heroMagic": 8,
-  "heroLevel": 3,
-  "heroXp": 50,
-  "heroRow": 0,
-  "heroCol": 0,
-  "inventory": [
-    {"id":"a0f7cad1-b97a-4de6-937d-e6e34f4e5d6f","name":"Iron Sword","type":"SWORD","value":8},
-    {"id":"74f1b851-5cc4-482a-a561-f3edec1dc39f","name":"Ancient Amulet","type":"AMULET","value":8}
-  ],
-  "dungeonRows": 8,
-  "dungeonCols": 8,
-  "rooms": [
-    {"row":0,"col":0,"type":"START","visited":true,"cleared":false,"enemies":[],"items":[]},
-    {"row":0,"col":1,"type":"ENEMY","visited":false,"cleared":false,"enemies":[{"id":"58e06459-396f-42b5-9906-6e046167e739","type":"SKELETON","hp":50}],"items":[]},
-    {"row":0,"col":2,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":0,"col":3,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":0,"col":4,"type":"ENEMY","visited":false,"cleared":false,"enemies":[{"id":"071f7dca-cce4-44e3-b529-26dad0a65630","type":"DARK_MAGE","hp":65}],"items":[]},
-    {"row":0,"col":5,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":0,"col":6,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":0,"col":7,"type":"TREASURE","visited":false,"cleared":false,"enemies":[],"items":[{"id":"fa0130c1-1b1b-46f4-9b8f-7ceb40ec6383","name":"Elven Bow","type":"BOW","value":11}]},
-    {"row":1,"col":0,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":1,"col":1,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":1,"col":2,"type":"ENEMY","visited":false,"cleared":false,"enemies":[{"id":"eb948ecb-ea69-4704-a1e6-3025b78c063c","type":"DARK_MAGE","hp":65}],"items":[]},
-    {"row":1,"col":3,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":1,"col":4,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":1,"col":5,"type":"ENEMY","visited":false,"cleared":false,"enemies":[{"id":"30507d98-b5c3-4376-9978-d84d2da4dd1f","type":"DARK_MAGE","hp":65}],"items":[]},
-    {"row":1,"col":6,"type":"TREASURE","visited":false,"cleared":false,"enemies":[],"items":[{"id":"04c5a320-a9c3-4ab6-afe6-1b59d6146a5f","name":"Ancient Amulet","type":"AMULET","value":11}]},
-    {"row":1,"col":7,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":2,"col":0,"type":"ENEMY","visited":false,"cleared":false,"enemies":[{"id":"dcfed5d7-2175-429e-95d7-ecf03f92863c","type":"DARK_MAGE","hp":65}],"items":[]},
-    {"row":2,"col":1,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":2,"col":2,"type":"ENEMY","visited":false,"cleared":false,"enemies":[{"id":"364de984-8a14-40aa-8953-d8293ce15755","type":"DARK_MAGE","hp":65}],"items":[]},
-    {"row":2,"col":3,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":2,"col":4,"type":"ENEMY","visited":false,"cleared":false,"enemies":[{"id":"2a15a48e-e3f4-429f-80b3-56711b0c4cec","type":"DARK_MAGE","hp":65}],"items":[]},
-    {"row":2,"col":5,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":2,"col":6,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":2,"col":7,"type":"ENEMY","visited":false,"cleared":false,"enemies":[{"id":"2a912c38-ee9e-4481-bfde-a22feac37d5e","type":"DARK_MAGE","hp":65}],"items":[]},
-    {"row":3,"col":0,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":3,"col":1,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":3,"col":2,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":3,"col":3,"type":"ENEMY","visited":false,"cleared":false,"enemies":[{"id":"560dfd72-104c-440e-9455-18d355603b04","type":"SKELETON","hp":50}],"items":[]},
-    {"row":3,"col":4,"type":"ENEMY","visited":false,"cleared":false,"enemies":[{"id":"a78b6d3f-200b-4e0d-bf63-7ffc0a5f507f","type":"DARK_MAGE","hp":65}],"items":[]},
-    {"row":3,"col":5,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":3,"col":6,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":3,"col":7,"type":"TREASURE","visited":false,"cleared":false,"enemies":[],"items":[{"id":"e54adb77-93e9-42a5-9fc4-70328a1b90df","name":"Magic Staff","type":"STAFF","value":11}]},
-    {"row":4,"col":0,"type":"ENEMY","visited":false,"cleared":false,"enemies":[{"id":"b06b3144-5ca2-48d6-892a-df2a1dec6603","type":"DARK_MAGE","hp":65}],"items":[]},
-    {"row":4,"col":1,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":4,"col":2,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":4,"col":3,"type":"ENEMY","visited":false,"cleared":false,"enemies":[{"id":"d5f3372d-f57a-470c-be0a-92e02c86c6e6","type":"SKELETON","hp":50}],"items":[]},
-    {"row":4,"col":4,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":4,"col":5,"type":"ENEMY","visited":false,"cleared":false,"enemies":[{"id":"4ae2b32c-79cc-4706-80c7-c19d3d3a1dd5","type":"DARK_MAGE","hp":65}],"items":[]},
-    {"row":4,"col":6,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":4,"col":7,"type":"TREASURE","visited":false,"cleared":false,"enemies":[],"items":[{"id":"552d1c48-79a6-416b-9c48-a8ed5ae4b160","name":"Health Potion","type":"HEALTH_POTION","value":50}]},
-    {"row":5,"col":0,"type":"ENEMY","visited":false,"cleared":false,"enemies":[{"id":"bcaf1ff3-3a3a-49cd-9fd5-0f1b14c63b83","type":"DARK_MAGE","hp":65}],"items":[]},
-    {"row":5,"col":1,"type":"ENEMY","visited":false,"cleared":false,"enemies":[{"id":"acdb2b65-dac4-4f39-9e3a-9fbc293672c2","type":"SKELETON","hp":50}],"items":[]},
-    {"row":5,"col":2,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":5,"col":3,"type":"TREASURE","visited":false,"cleared":false,"enemies":[],"items":[{"id":"5107f5e7-aa7f-4e8b-9fb4-4dd3063a006a","name":"Iron Sword","type":"SWORD","value":11}]},
-    {"row":5,"col":4,"type":"ENEMY","visited":false,"cleared":false,"enemies":[{"id":"91698ab3-c38e-4c24-8705-3cd6ef04481b","type":"SKELETON","hp":50}],"items":[]},
-    {"row":5,"col":5,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":5,"col":6,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":5,"col":7,"type":"ENEMY","visited":false,"cleared":false,"enemies":[{"id":"fc42aa72-0fc9-4498-acf5-88e5f8685199","type":"DARK_MAGE","hp":65}],"items":[]},
-    {"row":6,"col":0,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":6,"col":1,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":6,"col":2,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":6,"col":3,"type":"ENEMY","visited":false,"cleared":false,"enemies":[{"id":"1f30a313-7a63-4017-8ec7-de382765aba2","type":"DARK_MAGE","hp":65}],"items":[]},
-    {"row":6,"col":4,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":6,"col":5,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":6,"col":6,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":6,"col":7,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":7,"col":0,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":7,"col":1,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":7,"col":2,"type":"TREASURE","visited":false,"cleared":false,"enemies":[],"items":[{"id":"99d3154b-a80f-4cc9-b31a-aa8b5d1ac158","name":"Ancient Amulet","type":"AMULET","value":11}]},
-    {"row":7,"col":3,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":7,"col":4,"type":"TREASURE","visited":false,"cleared":false,"enemies":[],"items":[{"id":"45e67fc2-3e6e-4696-86f9-e0a728cd640b","name":"Steel Armor","type":"ARMOR","value":11}]},
-    {"row":7,"col":5,"type":"EMPTY","visited":false,"cleared":false,"enemies":[],"items":[]},
-    {"row":7,"col":6,"type":"TREASURE","visited":false,"cleared":false,"enemies":[],"items":[{"id":"0aa7da87-8104-4d0f-b990-d6c845f9f080","name":"Iron Sword","type":"SWORD","value":11}]},
-    {"row":7,"col":7,"type":"EXIT","visited":false,"cleared":false,"enemies":[{"id":"9a0bf792-6361-47a8-92c2-65a4f505c26f","type":"ASSASSIN","hp":100}],"items":[]}
-  ],
-  "gameOver": false,
-  "victory": false,
-  "dungeonLevel": 2
-}
+heroId=9be5128c-2cb5-4cd8-bfb0-e327d6e887f9
+heroName=test
+heroClass=WARRIOR
+heroHp=51
+heroMaxHp=165
+heroAttack=27
+heroDefense=14
+heroMagic=10
+heroLevel=4
+heroXp=90
+heroRow=0
+heroCol=0
+dungeonLevel=3
+gameOver=false
+victory=false
+inventorySize=3
+inv_0_id=e61b499a-e398-4435-ab4f-96370a3e8708
+inv_0_name=Elven Bow
+inv_0_type=BOW
+inv_0_value=8
+inv_1_id=c64f63b2-de82-4c44-8259-389ef5fb9c65
+inv_1_name=Ancient Amulet
+inv_1_type=AMULET
+inv_1_value=11
+inv_2_id=f25e164b-546f-44c6-ba13-d1c76fbaa2a7
+inv_2_name=Steel Armor
+inv_2_type=ARMOR
+inv_2_value=11
+dungeonRows=8
+dungeonCols=8
+room_0_0_type=START
+room_0_0_visited=true
+room_0_0_cleared=false
+room_0_0_enemyCount=0
+room_0_0_itemCount=0
+room_0_1_type=EMPTY
+room_0_1_visited=false
+room_0_1_cleared=false
+room_0_1_enemyCount=0
+room_0_1_itemCount=0
+room_0_2_type=EMPTY
+room_0_2_visited=false
+room_0_2_cleared=false
+room_0_2_enemyCount=0
+room_0_2_itemCount=0
+room_0_3_type=EMPTY
+room_0_3_visited=false
+room_0_3_cleared=false
+room_0_3_enemyCount=0
+room_0_3_itemCount=0
+room_0_4_type=EMPTY
+room_0_4_visited=false
+room_0_4_cleared=false
+room_0_4_enemyCount=0
+room_0_4_itemCount=0
+room_0_5_type=ENEMY
+room_0_5_visited=false
+room_0_5_cleared=false
+room_0_5_enemyCount=1
+room_0_5_enemy_0_id=0da4dbaf-47a4-44ed-9fac-8cabca9cc6d3
+room_0_5_enemy_0_type=GOBLIN
+room_0_5_enemy_0_hp=30
+room_0_5_itemCount=0
+room_0_6_type=EMPTY
+room_0_6_visited=false
+room_0_6_cleared=false
+room_0_6_enemyCount=0
+room_0_6_itemCount=0
+room_0_7_type=ENEMY
+room_0_7_visited=false
+room_0_7_cleared=false
+room_0_7_enemyCount=1
+room_0_7_enemy_0_id=9a5d1e1f-6389-41eb-91ca-395391e0ed1d
+room_0_7_enemy_0_type=SKELETON
+room_0_7_enemy_0_hp=50
+room_0_7_itemCount=0
+room_1_0_type=EMPTY
+room_1_0_visited=false
+room_1_0_cleared=false
+room_1_0_enemyCount=0
+room_1_0_itemCount=0
+room_1_1_type=EMPTY
+room_1_1_visited=false
+room_1_1_cleared=false
+room_1_1_enemyCount=0
+room_1_1_itemCount=0
+room_1_2_type=EMPTY
+room_1_2_visited=false
+room_1_2_cleared=false
+room_1_2_enemyCount=0
+room_1_2_itemCount=0
+room_1_3_type=EMPTY
+room_1_3_visited=false
+room_1_3_cleared=false
+room_1_3_enemyCount=0
+room_1_3_itemCount=0
+room_1_4_type=EMPTY
+room_1_4_visited=false
+room_1_4_cleared=false
+room_1_4_enemyCount=0
+room_1_4_itemCount=0
+room_1_5_type=ENEMY
+room_1_5_visited=false
+room_1_5_cleared=false
+room_1_5_enemyCount=1
+room_1_5_enemy_0_id=b1833695-1953-405a-8b87-1064561c0e40
+room_1_5_enemy_0_type=SKELETON
+room_1_5_enemy_0_hp=50
+room_1_5_itemCount=0
+room_1_6_type=ENEMY
+room_1_6_visited=false
+room_1_6_cleared=false
+room_1_6_enemyCount=1
+room_1_6_enemy_0_id=23f4e771-e07f-4402-93d5-ef1631fb10e4
+room_1_6_enemy_0_type=SKELETON
+room_1_6_enemy_0_hp=50
+room_1_6_itemCount=0
+room_1_7_type=ENEMY
+room_1_7_visited=false
+room_1_7_cleared=false
+room_1_7_enemyCount=1
+room_1_7_enemy_0_id=6f165d72-d3f7-4621-bfab-62da3a7377b0
+room_1_7_enemy_0_type=DARK_MAGE
+room_1_7_enemy_0_hp=65
+room_1_7_itemCount=0
+room_2_0_type=EMPTY
+room_2_0_visited=false
+room_2_0_cleared=false
+room_2_0_enemyCount=0
+room_2_0_itemCount=0
+room_2_1_type=EMPTY
+room_2_1_visited=false
+room_2_1_cleared=false
+room_2_1_enemyCount=0
+room_2_1_itemCount=0
+room_2_2_type=EMPTY
+room_2_2_visited=false
+room_2_2_cleared=false
+room_2_2_enemyCount=0
+room_2_2_itemCount=0
+room_2_3_type=TREASURE
+room_2_3_visited=false
+room_2_3_cleared=false
+room_2_3_enemyCount=0
+room_2_3_itemCount=1
+room_2_3_item_0_id=3afb333c-5c0f-42ec-8bd3-7d6ede08e045
+room_2_3_item_0_name=Magic Staff
+room_2_3_item_0_type=STAFF
+room_2_3_item_0_value=14
+room_2_4_type=EMPTY
+room_2_4_visited=false
+room_2_4_cleared=false
+room_2_4_enemyCount=0
+room_2_4_itemCount=0
+room_2_5_type=ENEMY
+room_2_5_visited=false
+room_2_5_cleared=false
+room_2_5_enemyCount=1
+room_2_5_enemy_0_id=15cb5c9c-b604-4c21-9d95-45373c58339d
+room_2_5_enemy_0_type=DARK_MAGE
+room_2_5_enemy_0_hp=65
+room_2_5_itemCount=0
+room_2_6_type=EMPTY
+room_2_6_visited=false
+room_2_6_cleared=false
+room_2_6_enemyCount=0
+room_2_6_itemCount=0
+room_2_7_type=EMPTY
+room_2_7_visited=false
+room_2_7_cleared=false
+room_2_7_enemyCount=0
+room_2_7_itemCount=0
+room_3_0_type=EMPTY
+room_3_0_visited=false
+room_3_0_cleared=false
+room_3_0_enemyCount=0
+room_3_0_itemCount=0
+room_3_1_type=EMPTY
+room_3_1_visited=false
+room_3_1_cleared=false
+room_3_1_enemyCount=0
+room_3_1_itemCount=0
+room_3_2_type=EMPTY
+room_3_2_visited=false
+room_3_2_cleared=false
+room_3_2_enemyCount=0
+room_3_2_itemCount=0
+room_3_3_type=TREASURE
+room_3_3_visited=false
+room_3_3_cleared=false
+room_3_3_enemyCount=0
+room_3_3_itemCount=1
+room_3_3_item_0_id=91846be6-9cea-49e5-8fea-96fe99fefab6
+room_3_3_item_0_name=Steel Armor
+room_3_3_item_0_type=ARMOR
+room_3_3_item_0_value=14
+room_3_4_type=ENEMY
+room_3_4_visited=false
+room_3_4_cleared=false
+room_3_4_enemyCount=1
+room_3_4_enemy_0_id=67261762-d70b-4c11-bd02-ac92549fc141
+room_3_4_enemy_0_type=GOBLIN
+room_3_4_enemy_0_hp=30
+room_3_4_itemCount=0
+room_3_5_type=EMPTY
+room_3_5_visited=false
+room_3_5_cleared=false
+room_3_5_enemyCount=0
+room_3_5_itemCount=0
+room_3_6_type=EMPTY
+room_3_6_visited=false
+room_3_6_cleared=false
+room_3_6_enemyCount=0
+room_3_6_itemCount=0
+room_3_7_type=EMPTY
+room_3_7_visited=false
+room_3_7_cleared=false
+room_3_7_enemyCount=0
+room_3_7_itemCount=0
+room_4_0_type=EMPTY
+room_4_0_visited=false
+room_4_0_cleared=false
+room_4_0_enemyCount=0
+room_4_0_itemCount=0
+room_4_1_type=ENEMY
+room_4_1_visited=false
+room_4_1_cleared=false
+room_4_1_enemyCount=1
+room_4_1_enemy_0_id=75e260ee-d3d0-4e51-85e0-0f274aaef47e
+room_4_1_enemy_0_type=GOBLIN
+room_4_1_enemy_0_hp=30
+room_4_1_itemCount=0
+room_4_2_type=TREASURE
+room_4_2_visited=false
+room_4_2_cleared=false
+room_4_2_enemyCount=0
+room_4_2_itemCount=1
+room_4_2_item_0_id=d754ad99-7cdc-4ea7-af21-0020f668f882
+room_4_2_item_0_name=Ancient Amulet
+room_4_2_item_0_type=AMULET
+room_4_2_item_0_value=14
+room_4_3_type=EMPTY
+room_4_3_visited=false
+room_4_3_cleared=false
+room_4_3_enemyCount=0
+room_4_3_itemCount=0
+room_4_4_type=EMPTY
+room_4_4_visited=false
+room_4_4_cleared=false
+room_4_4_enemyCount=0
+room_4_4_itemCount=0
+room_4_5_type=EMPTY
+room_4_5_visited=false
+room_4_5_cleared=false
+room_4_5_enemyCount=0
+room_4_5_itemCount=0
+room_4_6_type=TREASURE
+room_4_6_visited=false
+room_4_6_cleared=false
+room_4_6_enemyCount=0
+room_4_6_itemCount=1
+room_4_6_item_0_id=8957d87e-a399-49b7-afbb-70864c38d663
+room_4_6_item_0_name=Elven Bow
+room_4_6_item_0_type=BOW
+room_4_6_item_0_value=14
+room_4_7_type=TREASURE
+room_4_7_visited=false
+room_4_7_cleared=false
+room_4_7_enemyCount=0
+room_4_7_itemCount=1
+room_4_7_item_0_id=140075b1-b15e-4770-8659-8fec5e1387b4
+room_4_7_item_0_name=Elven Bow
+room_4_7_item_0_type=BOW
+room_4_7_item_0_value=14
+room_5_0_type=EMPTY
+room_5_0_visited=false
+room_5_0_cleared=false
+room_5_0_enemyCount=0
+room_5_0_itemCount=0
+room_5_1_type=TREASURE
+room_5_1_visited=false
+room_5_1_cleared=false
+room_5_1_enemyCount=0
+room_5_1_itemCount=1
+room_5_1_item_0_id=89ca8fdd-62b2-4638-8511-1e5025f49147
+room_5_1_item_0_name=Ancient Amulet
+room_5_1_item_0_type=AMULET
+room_5_1_item_0_value=14
+room_5_2_type=TREASURE
+room_5_2_visited=false
+room_5_2_cleared=false
+room_5_2_enemyCount=0
+room_5_2_itemCount=1
+room_5_2_item_0_id=e0812caf-2f72-4fec-949d-dc30dbd9906d
+room_5_2_item_0_name=Magic Staff
+room_5_2_item_0_type=STAFF
+room_5_2_item_0_value=14
+room_5_3_type=TREASURE
+room_5_3_visited=false
+room_5_3_cleared=false
+room_5_3_enemyCount=0
+room_5_3_itemCount=1
+room_5_3_item_0_id=e085224a-efd8-4d86-8e99-615a3a53f15c
+room_5_3_item_0_name=Steel Armor
+room_5_3_item_0_type=ARMOR
+room_5_3_item_0_value=14
+room_5_4_type=ENEMY
+room_5_4_visited=false
+room_5_4_cleared=false
+room_5_4_enemyCount=1
+room_5_4_enemy_0_id=86285882-ec65-45ba-8f37-eb40ded1e2d6
+room_5_4_enemy_0_type=DARK_MAGE
+room_5_4_enemy_0_hp=65
+room_5_4_itemCount=0
+room_5_5_type=ENEMY
+room_5_5_visited=false
+room_5_5_cleared=false
+room_5_5_enemyCount=1
+room_5_5_enemy_0_id=ed3ff585-80a5-40fe-ba14-c45c7e654a0b
+room_5_5_enemy_0_type=GOBLIN
+room_5_5_enemy_0_hp=30
+room_5_5_itemCount=0
+room_5_6_type=ENEMY
+room_5_6_visited=false
+room_5_6_cleared=false
+room_5_6_enemyCount=1
+room_5_6_enemy_0_id=deb8eb6f-1a0c-458a-8266-58dad3310c51
+room_5_6_enemy_0_type=SKELETON
+room_5_6_enemy_0_hp=50
+room_5_6_itemCount=0
+room_5_7_type=ENEMY
+room_5_7_visited=false
+room_5_7_cleared=false
+room_5_7_enemyCount=1
+room_5_7_enemy_0_id=141951bf-38eb-4926-8d17-5b26f2b6c140
+room_5_7_enemy_0_type=DARK_MAGE
+room_5_7_enemy_0_hp=65
+room_5_7_itemCount=0
+room_6_0_type=ENEMY
+room_6_0_visited=false
+room_6_0_cleared=false
+room_6_0_enemyCount=1
+room_6_0_enemy_0_id=cb188264-4119-45bd-ac2a-5b8b28b55955
+room_6_0_enemy_0_type=GOBLIN
+room_6_0_enemy_0_hp=30
+room_6_0_itemCount=0
+room_6_1_type=EMPTY
+room_6_1_visited=false
+room_6_1_cleared=false
+room_6_1_enemyCount=0
+room_6_1_itemCount=0
+room_6_2_type=EMPTY
+room_6_2_visited=false
+room_6_2_cleared=false
+room_6_2_enemyCount=0
+room_6_2_itemCount=0
+room_6_3_type=EMPTY
+room_6_3_visited=false
+room_6_3_cleared=false
+room_6_3_enemyCount=0
+room_6_3_itemCount=0
+room_6_4_type=EMPTY
+room_6_4_visited=false
+room_6_4_cleared=false
+room_6_4_enemyCount=0
+room_6_4_itemCount=0
+room_6_5_type=ENEMY
+room_6_5_visited=false
+room_6_5_cleared=false
+room_6_5_enemyCount=1
+room_6_5_enemy_0_id=aad470e6-3ccf-4678-ae08-733eea386b96
+room_6_5_enemy_0_type=GOBLIN
+room_6_5_enemy_0_hp=30
+room_6_5_itemCount=0
+room_6_6_type=EMPTY
+room_6_6_visited=false
+room_6_6_cleared=false
+room_6_6_enemyCount=0
+room_6_6_itemCount=0
+room_6_7_type=EMPTY
+room_6_7_visited=false
+room_6_7_cleared=false
+room_6_7_enemyCount=0
+room_6_7_itemCount=0
+room_7_0_type=ENEMY
+room_7_0_visited=false
+room_7_0_cleared=false
+room_7_0_enemyCount=1
+room_7_0_enemy_0_id=97e606bf-0208-477d-9fbf-16928d4fd16f
+room_7_0_enemy_0_type=DARK_MAGE
+room_7_0_enemy_0_hp=65
+room_7_0_itemCount=0
+room_7_1_type=EMPTY
+room_7_1_visited=false
+room_7_1_cleared=false
+room_7_1_enemyCount=0
+room_7_1_itemCount=0
+room_7_2_type=EMPTY
+room_7_2_visited=false
+room_7_2_cleared=false
+room_7_2_enemyCount=0
+room_7_2_itemCount=0
+room_7_3_type=ENEMY
+room_7_3_visited=false
+room_7_3_cleared=false
+room_7_3_enemyCount=1
+room_7_3_enemy_0_id=a8a23c1c-fca7-4522-87e1-dfefa5515c05
+room_7_3_enemy_0_type=GOBLIN
+room_7_3_enemy_0_hp=30
+room_7_3_itemCount=0
+room_7_4_type=ENEMY
+room_7_4_visited=false
+room_7_4_cleared=false
+room_7_4_enemyCount=1
+room_7_4_enemy_0_id=272ca385-9570-47a9-b9c3-45e039dede14
+room_7_4_enemy_0_type=GOBLIN
+room_7_4_enemy_0_hp=30
+room_7_4_itemCount=0
+room_7_5_type=EMPTY
+room_7_5_visited=false
+room_7_5_cleared=false
+room_7_5_enemyCount=0
+room_7_5_itemCount=0
+room_7_6_type=ENEMY
+room_7_6_visited=false
+room_7_6_cleared=false
+room_7_6_enemyCount=1
+room_7_6_enemy_0_id=b4204657-f87a-4abc-8ae6-391b5b5860a4
+room_7_6_enemy_0_type=SKELETON
+room_7_6_enemy_0_hp=50
+room_7_6_itemCount=0
+room_7_7_type=EXIT
+room_7_7_visited=false
+room_7_7_cleared=false
+room_7_7_enemyCount=1
+room_7_7_enemy_0_id=7a4ef721-f648-4dce-b97c-c6cd06ed4e36
+room_7_7_enemy_0_type=DRAGON
+room_7_7_enemy_0_hp=200
+room_7_7_itemCount=0

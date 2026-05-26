@@ -70,6 +70,8 @@ public class Hero implements GameEntity {
     public void boostAttack(int amount) { this.attack += amount; }
     public void boostDefense(int amount) { this.defense += amount; }
     public void boostMagic(int amount) { this.magic += amount; }
+    public void setLevel(int level) { this.level = level; }   //persistence 
+    public void setExperience(int xp) { this.experience = xp; }   //persistence 
 
     @Override
     public void takeDamage(int damage) {
