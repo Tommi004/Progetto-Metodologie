@@ -9,7 +9,7 @@ import it.unicam.cs.mpgc.rpg126224.model.Item;
  */
 public interface HeroController {
 
-    Hero createHero(String name, HeroClass heroClass);
+    Hero createHero(String name, HeroClass heroClass, String gender);
     boolean useItem(Hero hero, String itemId);
     void pickUpItem(Hero hero, Item item);
 }

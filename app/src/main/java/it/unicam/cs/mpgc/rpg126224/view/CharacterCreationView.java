@@ -10,14 +10,15 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 
 /**
- * Character creation screen shown at the start of a new game.
+ * Character creation screen with name, class and gender selection.
  */
 public class CharacterCreationView extends VBox {
 
     private final GameController controller;
     private final Runnable onGameStarted;
     private final TextField nameField = new TextField();
-    private final ToggleGroup classGroup = new ToggleGroup();
+    private final ToggleGroup classGroup  = new ToggleGroup();
+    private final ToggleGroup genderGroup = new ToggleGroup();
 
     public CharacterCreationView(GameController controller, Runnable onGameStarted) {
         this.controller = controller;
@@ -27,7 +28,7 @@ public class CharacterCreationView extends VBox {
 
     private void buildUI() {
         setAlignment(Pos.CENTER);
-        setSpacing(20);
+        setSpacing(18);
         setPadding(new Insets(40));
         setStyle("-fx-background-color: #1a1a2e;");
 
@@ -39,12 +40,25 @@ public class CharacterCreationView extends VBox {
         subtitle.setFont(Font.font("Monospace", 16));
         subtitle.setTextFill(Color.web("#a0a0c0"));
 
+        // Name
         Label nameLabel = styledLabel("Hero Name:");
         nameField.setMaxWidth(300);
         nameField.setStyle("-fx-background-color: #16213e; -fx-text-fill: #e0e0ff; " +
                 "-fx-border-color: #e94560; -fx-border-radius: 4; -fx-font-family: Monospace;");
         nameField.setPromptText("Enter your name...");
 
+        // Gender
+        Label genderLabel = styledLabel("Gender:");
+        HBox genderBox = new HBox(20);
+        genderBox.setAlignment(Pos.CENTER);
+
+        RadioButton maleBtn   = genderButton("Male",   "male");
+        RadioButton femaleBtn = genderButton("Female", "female");
+        maleBtn.setSelected(true);
+
+        genderBox.getChildren().addAll(maleBtn, femaleBtn);
+
+        // Class
         Label classLabel = styledLabel("Choose Class:");
         HBox classBox = new HBox(15);
         classBox.setAlignment(Pos.CENTER);
@@ -75,9 +89,20 @@ public class CharacterCreationView extends VBox {
                 "-fx-background-radius: 4;");
         startBtn.setOnAction(e -> handleStart());
 
-        getChildren().addAll(title, subtitle, new Separator(),
-                nameLabel, nameField, classLabel, classBox, classInfo,
+        getChildren().addAll(
+                title, subtitle, new Separator(),
+                nameLabel, nameField,
+                genderLabel, genderBox,
+                classLabel, classBox, classInfo,
                 new Separator(), startBtn);
+    }
+
+    private RadioButton genderButton(String text, String value) {
+        RadioButton rb = new RadioButton(text);
+        rb.setToggleGroup(genderGroup);
+        rb.setUserData(value);
+        rb.setStyle("-fx-text-fill: #c0c0e0; -fx-font-family: Monospace; -fx-font-size: 13;");
+        return rb;
     }
 
     private void handleStart() {
@@ -86,11 +111,17 @@ public class CharacterCreationView extends VBox {
             nameField.setStyle(nameField.getStyle() + "-fx-border-color: red;");
             return;
         }
-        Toggle selected = classGroup.getSelectedToggle();
-        HeroClass heroClass = selected != null
-                ? (HeroClass) selected.getUserData()
+        Toggle selectedClass = classGroup.getSelectedToggle();
+        HeroClass heroClass = selectedClass != null
+                ? (HeroClass) selectedClass.getUserData()
                 : HeroClass.WARRIOR;
-        controller.startNewGame(name, heroClass);
+
+        Toggle selectedGender = genderGroup.getSelectedToggle();
+        String gender = selectedGender != null
+                ? (String) selectedGender.getUserData()
+                : "male";
+
+        controller.startNewGame(name, heroClass, gender);
         onGameStarted.run();
     }
 

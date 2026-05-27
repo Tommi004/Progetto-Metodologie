@@ -25,6 +25,7 @@ public class JsonPersistenceManager implements PersistenceManager {
             sb.append("heroId=").append(hero.getId()).append("\n");
             sb.append("heroName=").append(hero.getName()).append("\n");
             sb.append("heroClass=").append(hero.getHeroClass().name()).append("\n");
+            sb.append("heroGender=").append(hero.getGender()).append("\n");
             sb.append("heroHp=").append(hero.getCurrentHp()).append("\n");
             sb.append("heroMaxHp=").append(hero.getMaxHp()).append("\n");
             sb.append("heroAttack=").append(hero.getAttack()).append("\n");
@@ -129,7 +130,8 @@ public class JsonPersistenceManager implements PersistenceManager {
         String heroName  = d.get("heroName");
         HeroClass heroClass = HeroClass.valueOf(d.get("heroClass"));
 
-        Hero hero = new Hero(heroId, heroName, heroClass);
+        String heroGender = d.getOrDefault("heroGender", "male");
+        Hero hero = new Hero(heroId, heroName, heroClass, heroGender);
 
         // Restore HP
         int savedHp = getInt(d, "heroHp");

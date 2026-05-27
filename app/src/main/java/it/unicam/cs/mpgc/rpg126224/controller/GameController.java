@@ -26,10 +26,8 @@ public class GameController {
 
     public PersistenceManager getPersistenceManager() { return persistenceManager; }
 
-    public void startNewGame(String heroName, HeroClass heroClass) {
-        Hero hero = heroController.createHero(heroName, heroClass);
-        Dungeon dungeon = dungeonController.generateDungeon(1);
-        currentState = new GameState(hero, dungeon);
+    public void startNewGame(String heroName, HeroClass heroClass, String gender) {
+    Hero hero = heroController.createHero(heroName, heroClass, gender);
     }
 
     public boolean saveGame() {

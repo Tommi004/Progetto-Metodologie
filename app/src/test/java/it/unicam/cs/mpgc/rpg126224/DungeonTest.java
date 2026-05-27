@@ -67,7 +67,7 @@ class DungeonTest {
     @Test
     @DisplayName("Hero movement updates position")
     void heroMovement() {
-        Hero hero = new Hero("h1", "Test", HeroClass.WARRIOR);
+        Hero hero = new Hero("h1", "Test", HeroClass.WARRIOR, "male");
         boolean moved = manager.moveHero(hero, dungeon, 1, 0);
         assertTrue(moved);
         assertEquals(1, hero.getRow());
@@ -77,7 +77,7 @@ class DungeonTest {
     @Test
     @DisplayName("Hero cannot move outside dungeon bounds")
     void heroMovementOutOfBounds() {
-        Hero hero = new Hero("h1", "Test", HeroClass.WARRIOR);
+        Hero hero = new Hero("h1", "Test", HeroClass.WARRIOR, "male");
         boolean moved = manager.moveHero(hero, dungeon, -1, 0);
         assertFalse(moved);
         assertEquals(0, hero.getRow());
@@ -86,7 +86,7 @@ class DungeonTest {
     @Test
     @DisplayName("Room is marked visited after hero movement")
     void roomMarkedVisited() {
-        Hero hero = new Hero("h1", "Test", HeroClass.WARRIOR);
+        Hero hero = new Hero("h1", "Test", HeroClass.WARRIOR, "male");
         manager.moveHero(hero, dungeon, 1, 0);
         assertTrue(dungeon.getRoom(1, 0).isVisited());
     }

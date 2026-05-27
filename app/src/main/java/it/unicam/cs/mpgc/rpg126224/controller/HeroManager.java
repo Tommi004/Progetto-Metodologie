@@ -9,8 +9,8 @@ import java.util.UUID;
 public class HeroManager implements HeroController {
 
     @Override
-    public Hero createHero(String name, HeroClass heroClass) {
-        return new Hero(UUID.randomUUID().toString(), name, heroClass);
+    public Hero createHero(String name, HeroClass heroClass, String gender) {
+    return new Hero(UUID.randomUUID().toString(), name, heroClass, gender);
     }
 
     @Override

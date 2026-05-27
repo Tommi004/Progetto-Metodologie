@@ -15,7 +15,7 @@ class CombatTest {
     @BeforeEach
     void setUp() {
         manager = new CombatManager();
-        hero    = new Hero("h1", "Aldric", HeroClass.WARRIOR);
+        hero    = new Hero("h1", "Aldric", HeroClass.WARRIOR, "male");
         goblin  = new Enemy("e1", EnemyType.GOBLIN);
     }
 

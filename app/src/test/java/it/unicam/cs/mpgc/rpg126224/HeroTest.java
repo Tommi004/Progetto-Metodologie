@@ -12,8 +12,8 @@ class HeroTest {
 
     @BeforeEach
     void setUp() {
-        warrior = new Hero("w1", "Aldric", HeroClass.WARRIOR);
-        mage    = new Hero("m1", "Lyra",   HeroClass.MAGE);
+        warrior = new Hero("w1", "Aldric", HeroClass.WARRIOR, "male");
+        mage    = new Hero("m1", "Lyra",   HeroClass.MAGE, "female");
     }
 
     @Test
@@ -39,7 +39,7 @@ class HeroTest {
     void takeDamageReducesHp() {
         int hpBefore = warrior.getCurrentHp();
         warrior.takeDamage(20);
-        assertEquals(hpBefore - 12, warrior.getCurrentHp());
+        assertEquals(hpBefore - 16, warrior.getCurrentHp());
     }
 
     @Test
@@ -97,10 +97,10 @@ class HeroTest {
     @DisplayName("Constructor throws on null arguments")
     void constructorNullCheck() {
         assertThrows(NullPointerException.class,
-                () -> new Hero(null, "name", HeroClass.WARRIOR));
+        () -> new Hero(null, "name", HeroClass.WARRIOR, "male"));
         assertThrows(NullPointerException.class,
-                () -> new Hero("id", null, HeroClass.WARRIOR));
+                () -> new Hero("id", null, HeroClass.WARRIOR, "male"));
         assertThrows(NullPointerException.class,
-                () -> new Hero("id", "name", null));
+                () -> new Hero("id", "name", null, "male"));
     }
 }
