@@ -8,19 +8,21 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
+import javafx.application.Platform;
 import javafx.stage.Stage;
 
-
 import java.util.List;
-import javafx.application.Platform;
 
 /**
- * Main game screen showing dungeon map, hero status and movement controls.
+ * Main game screen showing dungeon map, hero status panel,
+ * movement controls and room info. Handles room events including
+ * combat, treasure popups and level advancement.
  */
 public class GameView extends BorderPane implements ViewRefreshable {
 
     private final GameController controller;
     private final Runnable onReturnToMenu;
+
     private final DungeonMapView mapView;
     private final HeroStatusView heroStatus;
     private final Label roomInfoLabel = new Label();
@@ -32,7 +34,6 @@ public class GameView extends BorderPane implements ViewRefreshable {
         this.mapView = new DungeonMapView(controller);
         this.heroStatus = new HeroStatusView(controller);
         buildUI();
-        refresh();
         setupKeyboardInput();
     }
 
@@ -50,19 +51,19 @@ public class GameView extends BorderPane implements ViewRefreshable {
         bar.setStyle("-fx-background-color: #060612; " +
                 "-fx-border-color: #1a1a3a; -fx-border-width: 0 0 1 0;");
 
-        Label title = new Label("DUNGEON PROTOCOL");
+        Label title = new Label("⚔  DUNGEON PROTOCOL");
         title.setFont(Font.font("Monospace", FontWeight.BOLD, 16));
         title.setTextFill(Color.web("#e94560"));
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button saveBtn = topButton("Save", "#1a5c2a");
-        Button menuBtn = topButton("Menu", "#333344");
+        Button saveBtn = topButton("💾  Save", "#1a5c2a", "#27ae60");
+        Button menuBtn = topButton("⬅  Menu", "#333344", "#555566");
 
         saveBtn.setOnAction(e -> {
             controller.saveGame();
-            showMessage("Game saved.");
+            showMessage("✓ Game saved.");
         });
         menuBtn.setOnAction(e -> onReturnToMenu.run());
 
@@ -85,8 +86,11 @@ public class GameView extends BorderPane implements ViewRefreshable {
         messageLabel.setAlignment(Pos.CENTER);
 
         center.getChildren().addAll(
-                roomInfoLabel, mapView,
-                buildMovementControls(), messageLabel);
+                roomInfoLabel,
+                mapView,
+                buildMovementControls(),
+                messageLabel
+        );
         return center;
     }
 
@@ -96,10 +100,10 @@ public class GameView extends BorderPane implements ViewRefreshable {
         grid.setHgap(6);
         grid.setVgap(6);
 
-        Button up    = dirButton("^");
-        Button down  = dirButton("v");
-        Button left  = dirButton("<");
-        Button right = dirButton(">");
+        Button up    = dirButton("▲");
+        Button down  = dirButton("▼");
+        Button left  = dirButton("◀");
+        Button right = dirButton("▶");
 
         up.setOnAction(e    -> handleMove(-1, 0));
         down.setOnAction(e  -> handleMove(1, 0));
@@ -131,7 +135,10 @@ public class GameView extends BorderPane implements ViewRefreshable {
     private void handleMove(int dRow, int dCol) {
         if (controller.getCurrentState().isGameOver()) return;
         boolean moved = controller.moveHero(dRow, dCol);
-        if (!moved) { showMessage("Can't move there."); return; }
+        if (!moved) {
+            showMessage("⛔ Can't move there.");
+            return;
+        }
         refresh();
         handleRoomEntry();
     }
@@ -139,6 +146,7 @@ public class GameView extends BorderPane implements ViewRefreshable {
     private void handleRoomEntry() {
         Room room = controller.getCurrentRoom();
 
+        // Treasure popup
         if (!room.getItems().isEmpty()) {
             List<Item> found = room.getItems();
             controller.collectRoomItems();
@@ -146,6 +154,7 @@ public class GameView extends BorderPane implements ViewRefreshable {
             refresh();
         }
 
+        // Combat
         if (!room.isCleared() && !room.getEnemies().isEmpty()) {
             Enemy enemy = room.getEnemies().get(0);
             boolean isExitRoom = room.getType() == RoomType.EXIT;
@@ -153,9 +162,7 @@ public class GameView extends BorderPane implements ViewRefreshable {
                 refresh();
                 if (controller.getCurrentState().isGameOver()) {
                     Platform.runLater(this::showGameOver);
-                    return;
-                }
-                if (isExitRoom && controller.getCurrentRoom().isCleared()) {
+                } else if (isExitRoom && controller.getCurrentRoom().isCleared()) {
                     if (controller.checkExitCondition()) {
                         if (controller.isVictory()) {
                             Platform.runLater(this::showVictory);
@@ -169,16 +176,18 @@ public class GameView extends BorderPane implements ViewRefreshable {
                     }
                 }
             }).show();
-        } else if (room.getType() == RoomType.EXIT && room.isCleared()) {
-            if (controller.checkExitCondition()) {
-                if (controller.isVictory()) showVictory();
-                else { showLevelAdvance(controller.getDungeonLevel()); refresh(); }
+        } else if (controller.checkExitCondition()) {
+            if (controller.isVictory()) showVictory();
+            else {
+                showLevelAdvance(controller.getDungeonLevel());
+                refresh();
             }
         }
     }
 
     @Override
     public void refresh() {
+        if (controller.getCurrentState() == null) return;
         mapView.refresh();
         heroStatus.refresh();
         updateRoomInfo();
@@ -187,19 +196,19 @@ public class GameView extends BorderPane implements ViewRefreshable {
     private void updateRoomInfo() {
         Room room = controller.getCurrentRoom();
         StringBuilder info = new StringBuilder();
-        info.append("Floor ").append(controller.getDungeonLevel()).append("/3");
-        info.append("  [").append(room.getRow()).append(",").append(room.getCol()).append("]");
-        info.append("  ").append(room.getType());
+        info.append("🏰 Floor ").append(controller.getDungeonLevel()).append("/3");
+        info.append("   📍 [").append(room.getRow()).append(",").append(room.getCol()).append("]");
+        info.append("   ").append(room.getType());
         if (!room.isCleared() && !room.getEnemies().isEmpty())
-            info.append("  ! ").append(room.getEnemies().size()).append(" enemy");
+            info.append("  ⚠ ").append(room.getEnemies().size()).append(" enemy");
         if (!room.getItems().isEmpty())
-            info.append("  $ ").append(room.getItems().size()).append(" item(s)");
+            info.append("  💰 ").append(room.getItems().size()).append(" item(s)");
         roomInfoLabel.setText(info.toString());
     }
 
     private void showMessage(String msg) { messageLabel.setText(msg); }
 
-        private void showLevelAdvance(int newLevel) {
+    private void showLevelAdvance(int newLevel) {
         Stage dialog = new Stage();
         dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
         dialog.setTitle("Floor Cleared!");
@@ -248,21 +257,93 @@ public class GameView extends BorderPane implements ViewRefreshable {
     }
 
     private void showGameOver() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("GAME OVER");
-        alert.setHeaderText("You have been defeated...");
-        alert.setContentText("The dungeon claimed another soul.");
-        alert.showAndWait();
-        onReturnToMenu.run();
+        Stage dialog = new Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.setTitle("Game Over");
+        dialog.setResizable(false);
+
+        VBox root = new VBox(20);
+        root.setAlignment(Pos.CENTER);
+        root.setPadding(new Insets(35));
+        root.setStyle("-fx-background-color: #0a0000;");
+
+        Label icon = new Label("💀");
+        icon.setFont(Font.font(48));
+
+        Label title = new Label("YOU DIED");
+        title.setFont(Font.font("Monospace", FontWeight.BOLD, 28));
+        title.setTextFill(Color.web("#e94560"));
+
+        javafx.scene.effect.DropShadow glow =
+                new javafx.scene.effect.DropShadow(20, Color.web("#e94560"));
+        title.setEffect(glow);
+
+        Label msg = new Label("The dungeon claimed another soul...");
+        msg.setFont(Font.font("Monospace", 13));
+        msg.setTextFill(Color.web("#a06060"));
+
+        Button okBtn = new Button("RETURN TO MENU");
+        okBtn.setStyle("-fx-background-color: #6a0000; -fx-text-fill: #ff8080; " +
+                "-fx-font-family: Monospace; -fx-font-size: 13; -fx-padding: 8 30; " +
+                "-fx-background-radius: 4;");
+        okBtn.setOnAction(e -> { dialog.close(); onReturnToMenu.run(); });
+
+        root.getChildren().addAll(icon, title, msg, okBtn);
+
+        javafx.animation.FadeTransition ft =
+                new javafx.animation.FadeTransition(javafx.util.Duration.millis(400), root);
+        ft.setFromValue(0); ft.setToValue(1);
+
+        dialog.setScene(new javafx.scene.Scene(root, 380, 260));
+        ft.play();
+        dialog.showAndWait();
     }
 
     private void showVictory() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("VICTORY!");
-        alert.setHeaderText("You conquered Dungeon Protocol!");
-        alert.setContentText("The Dragon is slain!");
-        alert.showAndWait();
-        onReturnToMenu.run();
+        Stage dialog = new Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.setTitle("Victory!");
+        dialog.setResizable(false);
+
+        VBox root = new VBox(20);
+        root.setAlignment(Pos.CENTER);
+        root.setPadding(new Insets(35));
+        root.setStyle("-fx-background-color: #0a0a00;");
+
+        Label icon = new Label("🏆");
+        icon.setFont(Font.font(48));
+
+        Label title = new Label("VICTORY!");
+        title.setFont(Font.font("Monospace", FontWeight.BOLD, 28));
+        title.setTextFill(Color.web("#ffd700"));
+
+        javafx.scene.effect.DropShadow glow =
+                new javafx.scene.effect.DropShadow(20, Color.web("#ffd700"));
+        title.setEffect(glow);
+
+        Label msg = new Label("You conquered Dungeon Protocol!");
+        msg.setFont(Font.font("Monospace", 13));
+        msg.setTextFill(Color.web("#e0e0ff"));
+
+        Label sub = new Label("The Dragon is slain. The dungeon is yours!");
+        sub.setFont(Font.font("Monospace", 11));
+        sub.setTextFill(Color.web("#a0a060"));
+
+        Button okBtn = new Button("RETURN TO MENU");
+        okBtn.setStyle("-fx-background-color: #8a6a00; -fx-text-fill: #ffd700; " +
+                "-fx-font-family: Monospace; -fx-font-size: 13; -fx-padding: 8 30; " +
+                "-fx-background-radius: 4;");
+        okBtn.setOnAction(e -> { dialog.close(); onReturnToMenu.run(); });
+
+        root.getChildren().addAll(icon, title, msg, sub, okBtn);
+
+        javafx.animation.FadeTransition ft =
+                new javafx.animation.FadeTransition(javafx.util.Duration.millis(400), root);
+        ft.setFromValue(0); ft.setToValue(1);
+
+        dialog.setScene(new javafx.scene.Scene(root, 380, 300));
+        ft.play();
+        dialog.showAndWait();
     }
 
     private Button dirButton(String text) {
@@ -270,15 +351,23 @@ public class GameView extends BorderPane implements ViewRefreshable {
         btn.setPrefSize(44, 44);
         btn.setStyle("-fx-background-color: #12122a; -fx-text-fill: #8080c0; " +
                 "-fx-font-size: 16; -fx-background-radius: 6; " +
-                "-fx-border-color: #2a2a5a; -fx-border-radius: 6;");
+                "-fx-border-color: #2a2a5a; -fx-border-radius: 6; -fx-cursor: hand;");
+        btn.setOnMouseEntered(e -> btn.setStyle(btn.getStyle()
+                .replace("#12122a", "#1e1e4a").replace("#8080c0", "#c0c0ff")));
+        btn.setOnMouseExited(e -> btn.setStyle(btn.getStyle()
+                .replace("#1e1e4a", "#12122a").replace("#c0c0ff", "#8080c0")));
         return btn;
     }
 
-    private Button topButton(String text, String color) {
+    private Button topButton(String text, String dark, String light) {
         Button btn = new Button(text);
-        btn.setStyle("-fx-background-color: " + color + "; -fx-text-fill: #c0c0e0; " +
+        btn.setStyle("-fx-background-color: " + dark + "; -fx-text-fill: #c0c0e0; " +
                 "-fx-font-family: Monospace; -fx-font-size: 12; -fx-padding: 5 12; " +
-                "-fx-background-radius: 4;");
+                "-fx-background-radius: 4; -fx-cursor: hand;");
+        btn.setOnMouseEntered(e -> btn.setStyle(btn.getStyle()
+                .replace(dark, light)));
+        btn.setOnMouseExited(e -> btn.setStyle(btn.getStyle()
+                .replace(light, dark)));
         return btn;
     }
 }

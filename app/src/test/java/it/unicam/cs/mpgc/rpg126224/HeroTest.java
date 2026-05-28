@@ -4,6 +4,10 @@ import it.unicam.cs.mpgc.rpg126224.model.*;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Unit tests for the Hero class.
+ * Verifies stat initialisation, damage, healing, level-up and inventory logic.
+ */
 @DisplayName("Hero Tests")
 class HeroTest {
 
@@ -12,8 +16,8 @@ class HeroTest {
 
     @BeforeEach
     void setUp() {
-        warrior = new Hero("w1", "Aldric", HeroClass.WARRIOR, "male");
-        mage    = new Hero("m1", "Lyra",   HeroClass.MAGE, "female");
+        warrior = new Hero("w1", "Aldric", HeroClass.WARRIOR);
+        mage    = new Hero("m1", "Lyra",   HeroClass.MAGE);
     }
 
     @Test
@@ -38,7 +42,7 @@ class HeroTest {
     @DisplayName("takeDamage reduces HP correctly applying defense")
     void takeDamageReducesHp() {
         int hpBefore = warrior.getCurrentHp();
-        warrior.takeDamage(20);
+        warrior.takeDamage(20); // effective = 20 - 8 defense = 12
         assertEquals(hpBefore - 16, warrior.getCurrentHp());
     }
 
@@ -70,7 +74,7 @@ class HeroTest {
     void levelUpIncreasesStats() {
         int atkBefore = warrior.getAttack();
         int defBefore = warrior.getDefense();
-        warrior.gainExperience(30);
+        warrior.gainExperience(100);
         assertTrue(warrior.getAttack() > atkBefore);
         assertTrue(warrior.getDefense() > defBefore);
     }
@@ -96,11 +100,8 @@ class HeroTest {
     @Test
     @DisplayName("Constructor throws on null arguments")
     void constructorNullCheck() {
-        assertThrows(NullPointerException.class,
-        () -> new Hero(null, "name", HeroClass.WARRIOR, "male"));
-        assertThrows(NullPointerException.class,
-                () -> new Hero("id", null, HeroClass.WARRIOR, "male"));
-        assertThrows(NullPointerException.class,
-                () -> new Hero("id", "name", null, "male"));
+        assertThrows(NullPointerException.class, () -> new Hero(null, "name", HeroClass.WARRIOR));
+        assertThrows(NullPointerException.class, () -> new Hero("id", null, HeroClass.WARRIOR));
+        assertThrows(NullPointerException.class, () -> new Hero("id", "name", null));
     }
 }

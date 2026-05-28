@@ -3,14 +3,11 @@ package it.unicam.cs.mpgc.rpg126224.controller;
 import it.unicam.cs.mpgc.rpg126224.model.*;
 import java.util.UUID;
 
-/**
- * Implementation of HeroController.
- */
 public class HeroManager implements HeroController {
 
     @Override
-    public Hero createHero(String name, HeroClass heroClass, String gender) {
-    return new Hero(UUID.randomUUID().toString(), name, heroClass, gender);
+    public Hero createHero(String name, HeroClass heroClass) {
+        return new Hero(UUID.randomUUID().toString(), name, heroClass);
     }
 
     @Override
@@ -27,9 +24,7 @@ public class HeroManager implements HeroController {
     }
 
     @Override
-    public void pickUpItem(Hero hero, Item item) {
-        hero.addItem(item);
-    }
+    public void pickUpItem(Hero hero, Item item) { hero.addItem(item); }
 
     private void applyItemEffect(Hero hero, Item item) {
         switch (item.getType()) {

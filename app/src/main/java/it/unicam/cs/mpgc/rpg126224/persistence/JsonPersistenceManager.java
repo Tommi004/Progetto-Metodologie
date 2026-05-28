@@ -5,10 +5,6 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
-/**
- * JSON-based implementation of PersistenceManager.
- * Uses a line-by-line flat format for reliable save/load.
- */
 public class JsonPersistenceManager implements PersistenceManager {
 
     private static final String SAVE_DIR  = "save";
@@ -20,12 +16,10 @@ public class JsonPersistenceManager implements PersistenceManager {
             Files.createDirectories(Paths.get(SAVE_DIR));
             Hero hero = state.getHero();
             Dungeon dungeon = state.getDungeon();
-
             StringBuilder sb = new StringBuilder();
             sb.append("heroId=").append(hero.getId()).append("\n");
             sb.append("heroName=").append(hero.getName()).append("\n");
             sb.append("heroClass=").append(hero.getHeroClass().name()).append("\n");
-            sb.append("heroGender=").append(hero.getGender()).append("\n");
             sb.append("heroHp=").append(hero.getCurrentHp()).append("\n");
             sb.append("heroMaxHp=").append(hero.getMaxHp()).append("\n");
             sb.append("heroAttack=").append(hero.getAttack()).append("\n");
@@ -38,8 +32,6 @@ public class JsonPersistenceManager implements PersistenceManager {
             sb.append("dungeonLevel=").append(state.getDungeonLevel()).append("\n");
             sb.append("gameOver=").append(state.isGameOver()).append("\n");
             sb.append("victory=").append(state.isVictory()).append("\n");
-
-            // Inventory
             List<Item> inv = hero.getInventory();
             sb.append("inventorySize=").append(inv.size()).append("\n");
             for (int i = 0; i < inv.size(); i++) {
@@ -49,11 +41,8 @@ public class JsonPersistenceManager implements PersistenceManager {
                 sb.append("inv_").append(i).append("_type=").append(item.getType().name()).append("\n");
                 sb.append("inv_").append(i).append("_value=").append(item.getValue()).append("\n");
             }
-
-            // Dungeon
             sb.append("dungeonRows=").append(dungeon.getRows()).append("\n");
             sb.append("dungeonCols=").append(dungeon.getCols()).append("\n");
-
             for (int r = 0; r < dungeon.getRows(); r++) {
                 for (int c = 0; c < dungeon.getCols(); c++) {
                     Room room = dungeon.getRoom(r, c);
@@ -61,7 +50,6 @@ public class JsonPersistenceManager implements PersistenceManager {
                     sb.append(prefix).append("type=").append(room.getType().name()).append("\n");
                     sb.append(prefix).append("visited=").append(room.isVisited()).append("\n");
                     sb.append(prefix).append("cleared=").append(room.isCleared()).append("\n");
-
                     List<Enemy> enemies = room.getEnemies();
                     sb.append(prefix).append("enemyCount=").append(enemies.size()).append("\n");
                     for (int i = 0; i < enemies.size(); i++) {
@@ -71,7 +59,6 @@ public class JsonPersistenceManager implements PersistenceManager {
                         sb.append(ep).append("type=").append(e.getType().name()).append("\n");
                         sb.append(ep).append("hp=").append(e.getCurrentHp()).append("\n");
                     }
-
                     List<Item> items = room.getItems();
                     sb.append(prefix).append("itemCount=").append(items.size()).append("\n");
                     for (int i = 0; i < items.size(); i++) {
@@ -84,9 +71,7 @@ public class JsonPersistenceManager implements PersistenceManager {
                     }
                 }
             }
-
             Files.writeString(Paths.get(SAVE_FILE), sb.toString());
-
         } catch (IOException e) {
             System.err.println("Failed to save game: " + e.getMessage());
         }
@@ -97,14 +82,12 @@ public class JsonPersistenceManager implements PersistenceManager {
         Path path = Paths.get(SAVE_FILE);
         if (!Files.exists(path)) return Optional.empty();
         try {
-            Map<String, String> data = new HashMap<>();
+            Map<String, String> d = new HashMap<>();
             for (String line : Files.readAllLines(path)) {
                 int eq = line.indexOf('=');
-                if (eq > 0) {
-                    data.put(line.substring(0, eq), line.substring(eq + 1));
-                }
+                if (eq > 0) d.put(line.substring(0, eq), line.substring(eq + 1));
             }
-            return Optional.of(parseGameState(data));
+            return Optional.of(parseGameState(d));
         } catch (Exception e) {
             System.err.println("Failed to load game: " + e.getMessage());
             return Optional.empty();
@@ -112,107 +95,74 @@ public class JsonPersistenceManager implements PersistenceManager {
     }
 
     @Override
-    public boolean hasSaveFile() {
-        return Files.exists(Paths.get(SAVE_FILE));
-    }
+    public boolean hasSaveFile() { return Files.exists(Paths.get(SAVE_FILE)); }
 
     @Override
     public void deleteSave() {
-        try {
-            Files.deleteIfExists(Paths.get(SAVE_FILE));
-        } catch (IOException e) {
-            System.err.println("Failed to delete save: " + e.getMessage());
-        }
+        try { Files.deleteIfExists(Paths.get(SAVE_FILE)); }
+        catch (IOException e) { System.err.println("Failed to delete save: " + e.getMessage()); }
     }
 
     private GameState parseGameState(Map<String, String> d) {
-        String heroId    = d.get("heroId");
-        String heroName  = d.get("heroName");
-        HeroClass heroClass = HeroClass.valueOf(d.get("heroClass"));
-
-        String heroGender = d.getOrDefault("heroGender", "male");
-        Hero hero = new Hero(heroId, heroName, heroClass, heroGender);
-
-        // Restore HP
-        int savedHp = getInt(d, "heroHp");
+        Hero hero = new Hero(d.get("heroId"), d.get("heroName"),
+                HeroClass.valueOf(d.get("heroClass")));
+        int savedMaxHp = getInt(d, "heroMaxHp");
+        int savedHp    = getInt(d, "heroHp");
+        if (savedMaxHp > hero.getMaxHp()) {
+            int diff = savedMaxHp - hero.getMaxHp();
+            // Ripristina maxHp tramite i livelli guadagnati
+            hero.setMaxHp(savedMaxHp);
+        }
         if (savedHp > 0) hero.setCurrentHp(savedHp);
-
-        // Restore position
         hero.setPosition(getInt(d, "heroRow"), getInt(d, "heroCol"));
-
-        // Restore stats directly
         int savedAttack  = getInt(d, "heroAttack");
         int savedDefense = getInt(d, "heroDefense");
         int savedMagic   = getInt(d, "heroMagic");
-        int savedLevel   = getInt(d, "heroLevel");
-        int savedXp      = getInt(d, "heroXp");
-
         if (savedAttack  > 0) hero.boostAttack(savedAttack - hero.getAttack());
         if (savedDefense > 0) hero.boostDefense(savedDefense - hero.getDefense());
         if (savedMagic   > 0) hero.boostMagic(savedMagic - hero.getMagic());
-        if (savedLevel   > 0) hero.setLevel(savedLevel);
-        if (savedXp      > 0) hero.setExperience(savedXp);
-
-        // Restore inventory
+        hero.setLevel(getInt(d, "heroLevel"));
+        hero.setExperience(getInt(d, "heroXp"));
         int invSize = getInt(d, "inventorySize");
         for (int i = 0; i < invSize; i++) {
-            hero.addItem(new Item(
-                    d.get("inv_" + i + "_id"),
-                    d.get("inv_" + i + "_name"),
-                    ItemType.valueOf(d.get("inv_" + i + "_type")),
-                    getInt(d, "inv_" + i + "_value")
-            ));
+            hero.addItem(new Item(d.get("inv_"+i+"_id"), d.get("inv_"+i+"_name"),
+                    ItemType.valueOf(d.get("inv_"+i+"_type")), getInt(d, "inv_"+i+"_value")));
         }
-
-        // Restore dungeon
         int dRows = getInt(d, "dungeonRows");
         int dCols = getInt(d, "dungeonCols");
         if (dRows <= 0) dRows = Dungeon.SIZE;
         if (dCols <= 0) dCols = Dungeon.SIZE;
         Dungeon dungeon = new Dungeon(dRows, dCols);
-
         for (int r = 0; r < dRows; r++) {
             for (int c = 0; c < dCols; c++) {
                 String prefix = "room_" + r + "_" + c + "_";
                 String typeStr = d.get(prefix + "type");
                 if (typeStr == null) continue;
-
                 Room room = dungeon.getRoom(r, c);
                 room.setType(RoomType.valueOf(typeStr));
                 if (getBool(d, prefix + "visited")) room.markVisited();
                 if (getBool(d, prefix + "cleared")) room.markCleared();
-
                 int enemyCount = getInt(d, prefix + "enemyCount");
                 for (int i = 0; i < enemyCount; i++) {
                     String ep = prefix + "enemy_" + i + "_";
-                    Enemy enemy = new Enemy(
-                            d.get(ep + "id"),
-                            EnemyType.valueOf(d.get(ep + "type"))
-                    );
-                    int eHp = getInt(d, ep + "hp");
+                    Enemy enemy = new Enemy(d.get(ep+"id"), EnemyType.valueOf(d.get(ep+"type")));
+                    int eHp = getInt(d, ep+"hp");
                     if (eHp > 0) enemy.setCurrentHp(eHp);
                     room.addEnemy(enemy);
                 }
-
                 int itemCount = getInt(d, prefix + "itemCount");
                 for (int i = 0; i < itemCount; i++) {
                     String ip = prefix + "item_" + i + "_";
-                    room.addItem(new Item(
-                            d.get(ip + "id"),
-                            d.get(ip + "name"),
-                            ItemType.valueOf(d.get(ip + "type")),
-                            getInt(d, ip + "value")
-                    ));
+                    room.addItem(new Item(d.get(ip+"id"), d.get(ip+"name"),
+                            ItemType.valueOf(d.get(ip+"type")), getInt(d, ip+"value")));
                 }
             }
         }
-
         GameState state = new GameState(hero, dungeon);
         int dungeonLevel = getInt(d, "dungeonLevel");
         if (dungeonLevel > 1) state.setDungeonLevel(dungeonLevel);
         if (getBool(d, "victory"))       state.setVictory();
         else if (getBool(d, "gameOver")) state.setGameOver();
-
         return state;
     }
 

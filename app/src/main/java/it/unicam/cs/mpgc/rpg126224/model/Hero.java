@@ -12,7 +12,6 @@ public class Hero implements GameEntity {
     private final String id;
     private final String name;
     private final HeroClass heroClass;
-    private final String gender;
 
     private int currentHp;
     private int maxHp;
@@ -28,21 +27,20 @@ public class Hero implements GameEntity {
 
     private static final int BASE_XP_PER_LEVEL = 30;
 
-    public Hero(String id, String name, HeroClass heroClass, String gender) {
-    this.id = Objects.requireNonNull(id, "id cannot be null");
-    this.name = Objects.requireNonNull(name, "name cannot be null");
-    this.heroClass = Objects.requireNonNull(heroClass, "heroClass cannot be null");
-    this.gender = gender != null ? gender : "male";
-    this.maxHp = heroClass.getBaseHp();
-    this.currentHp = maxHp;
-    this.attack = heroClass.getBaseAttack();
-    this.defense = heroClass.getBaseDefense();
-    this.magic = heroClass.getBaseMagic();
-    this.level = 1;
-    this.experience = 0;
-    this.row = 0;
-    this.col = 0;
-    this.inventory = new ArrayList<>();
+    public Hero(String id, String name, HeroClass heroClass) {
+        this.id = Objects.requireNonNull(id, "id cannot be null");
+        this.name = Objects.requireNonNull(name, "name cannot be null");
+        this.heroClass = Objects.requireNonNull(heroClass, "heroClass cannot be null");
+        this.maxHp = heroClass.getBaseHp();
+        this.currentHp = maxHp;
+        this.attack = heroClass.getBaseAttack();
+        this.defense = heroClass.getBaseDefense();
+        this.magic = heroClass.getBaseMagic();
+        this.level = 1;
+        this.experience = 0;
+        this.row = 0;
+        this.col = 0;
+        this.inventory = new ArrayList<>();
     }
 
     @Override public String getId() { return id; }
@@ -56,25 +54,18 @@ public class Hero implements GameEntity {
     public int getLevel() { return level; }
     public int getExperience() { return experience; }
     public HeroClass getHeroClass() { return heroClass; }
-    public String getGender() { return gender; }
     public int getRow() { return row; }
     public int getCol() { return col; }
     public List<Item> getInventory() { return List.copyOf(inventory); }
 
-    public void setPosition(int row, int col) {
-        this.row = row;
-        this.col = col;
-    }
-
-    public void setCurrentHp(int hp) {
-        this.currentHp = Math.max(0, Math.min(maxHp, hp));
-    }
-
+    public void setPosition(int row, int col) { this.row = row; this.col = col; }
+    public void setCurrentHp(int hp) { this.currentHp = Math.max(0, Math.min(maxHp, hp)); }
+    public void setMaxHp(int maxHp) { this.maxHp = maxHp; }
+    public void setLevel(int level) { this.level = level; }
+    public void setExperience(int xp) { this.experience = xp; }
     public void boostAttack(int amount) { this.attack += amount; }
     public void boostDefense(int amount) { this.defense += amount; }
     public void boostMagic(int amount) { this.magic += amount; }
-    public void setLevel(int level) { this.level = level; }   //persistence 
-    public void setExperience(int xp) { this.experience = xp; }   //persistence 
 
     @Override
     public void takeDamage(int damage) {
@@ -83,13 +74,9 @@ public class Hero implements GameEntity {
     }
 
     @Override
-    public void heal(int amount) {
-        currentHp = Math.min(maxHp, currentHp + amount);
-    }
+    public void heal(int amount) { currentHp = Math.min(maxHp, currentHp + amount); }
 
-    public void addItem(Item item) {
-        inventory.add(Objects.requireNonNull(item, "item cannot be null"));
-    }
+    public void addItem(Item item) { inventory.add(Objects.requireNonNull(item)); }
 
     public boolean removeItem(String itemId) {
         return inventory.removeIf(i -> i.getId().equals(itemId));
@@ -103,14 +90,12 @@ public class Hero implements GameEntity {
         }
     }
 
-    public int xpForNextLevel() {
-        return BASE_XP_PER_LEVEL * level;
-    }
+    public int xpForNextLevel() { return BASE_XP_PER_LEVEL * level; }
 
     private void levelUp() {
         level++;
         maxHp += 15;
-        currentHp = Math.min(currentHp + 15, maxHp);
+        currentHp = maxHp;
         attack += 3;
         defense += 2;
         magic += 2;

@@ -4,6 +4,7 @@ import it.unicam.cs.mpgc.rpg126224.controller.GameController;
 import it.unicam.cs.mpgc.rpg126224.persistence.JsonPersistenceManager;
 import javafx.animation.*;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -16,9 +17,6 @@ import javafx.scene.text.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-/**
- * Main JavaFX application entry point for Dungeon Protocol.
- */
 public class MainApp extends Application {
 
     private GameController controller;
@@ -49,10 +47,8 @@ public class MainApp extends Application {
                 new javafx.scene.effect.DropShadow(20, Color.web("#e94560"));
         title.setEffect(glow);
         Timeline glowAnim = new Timeline(
-                new KeyFrame(Duration.ZERO,
-                        new KeyValue(glow.radiusProperty(), 10)),
-                new KeyFrame(Duration.millis(1200),
-                        new KeyValue(glow.radiusProperty(), 28))
+                new KeyFrame(Duration.ZERO, new KeyValue(glow.radiusProperty(), 10)),
+                new KeyFrame(Duration.millis(1200), new KeyValue(glow.radiusProperty(), 28))
         );
         glowAnim.setAutoReverse(true);
         glowAnim.setCycleCount(Animation.INDEFINITE);
@@ -67,7 +63,6 @@ public class MainApp extends Application {
         Button quitBtn     = menuButton("Quit",      "#2a2a3a");
 
         loadGameBtn.setDisable(!controller.getPersistenceManager().hasSaveFile());
-
         newGameBtn.setOnAction(e  -> showCharacterCreation());
         loadGameBtn.setOnAction(e -> { if (controller.loadGame()) showGame(); });
         quitBtn.setOnAction(e     -> primaryStage.close());
@@ -88,10 +83,12 @@ public class MainApp extends Application {
         primaryStage.setScene(new Scene(creation, 940, 660));
     }
 
-    private void showGame() {
+    void showGame() {
         GameView game = new GameView(controller, this::showMainMenu);
-        primaryStage.setScene(new Scene(game, 960, 680));
+        Scene scene = new Scene(game, 960, 680);
+        primaryStage.setScene(scene);
         game.requestFocus();
+        Platform.runLater(game::refresh);
     }
 
     private Button menuButton(String text, String color) {
