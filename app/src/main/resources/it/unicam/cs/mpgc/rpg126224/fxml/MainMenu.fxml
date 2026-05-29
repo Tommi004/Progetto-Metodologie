@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="it.unicam.cs.mpgc.rpg126224.view.MainMenuViewController">
+
+    <!-- Particle canvas background — added programmatically in controller -->
+    <Pane fx:id="particlePane"
+          style="-fx-background-color: #06060f;"
+          maxWidth="Infinity" maxHeight="Infinity"/>
+
+    <!-- Content -->
+    <VBox alignment="CENTER" spacing="18"
+          style="-fx-padding: 60;">
+
+        <!-- Title -->
+        <Label fx:id="titleLabel" text="DUNGEON PROTOCOL"
+               style="-fx-font-family: Monospace; -fx-font-size: 48;
+                      -fx-font-weight: bold; -fx-text-fill: #e94560;"/>
+
+        <Label text="Enter the dungeon. Survive or perish."
+               style="-fx-font-family: Monospace; -fx-font-size: 15;
+                      -fx-text-fill: #303050;"/>
+
+        <Label text="⚔  ☠  🐉  ⚔"
+               style="-fx-font-size: 22; -fx-opacity: 0.4;"/>
+
+        <Separator style="-fx-background-color: #1a1a3a;" maxWidth="320"/>
+
+        <!-- Buttons -->
+        <VBox fx:id="buttonBox" alignment="CENTER" spacing="10" opacity="0">
+
+            <Button fx:id="newGameBtn" text="⚔   New Game"
+                    prefWidth="280" onAction="#handleNewGame"
+                    style="-fx-background-color: #8b1a2a; -fx-text-fill: #ffe0e0;
+                           -fx-font-family: Monospace; -fx-font-size: 15;
+                           -fx-padding: 13 24; -fx-background-radius: 6; -fx-cursor: hand;"/>
+
+            <Button fx:id="loadGameBtn" text="📂   Load Game"
+                    prefWidth="280" onAction="#handleLoadGame"
+                    style="-fx-background-color: #0e3a52; -fx-text-fill: #c0e0ff;
+                           -fx-font-family: Monospace; -fx-font-size: 15;
+                           -fx-padding: 13 24; -fx-background-radius: 6; -fx-cursor: hand;"/>
+
+            <Button fx:id="quitBtn" text="✖   Quit"
+                    prefWidth="280" onAction="#handleQuit"
+                    style="-fx-background-color: #1e1e2e; -fx-text-fill: #808090;
+                           -fx-font-family: Monospace; -fx-font-size: 15;
+                           -fx-padding: 13 24; -fx-background-radius: 6; -fx-cursor: hand;"/>
+        </VBox>
+
+        <!-- Version -->
+        <Label text="v1.0  |  UNICAM 126224"
+               style="-fx-font-family: Monospace; -fx-font-size: 10;
+                      -fx-text-fill: #202030;"/>
+    </VBox>
+
+</StackPane>

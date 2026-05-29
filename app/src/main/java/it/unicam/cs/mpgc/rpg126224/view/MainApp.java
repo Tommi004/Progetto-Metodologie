@@ -2,102 +2,69 @@ package it.unicam.cs.mpgc.rpg126224.view;
 
 import it.unicam.cs.mpgc.rpg126224.controller.GameController;
 import it.unicam.cs.mpgc.rpg126224.persistence.JsonPersistenceManager;
-import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.text.*;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 
+import java.io.IOException;
+
+/**
+ * JavaFX application entry point.
+ * Manages scene transitions between main menu, character creation and game.
+ */
 public class MainApp extends Application {
 
     private GameController controller;
-    private Stage primaryStage;
+    private Stage          primaryStage;
 
     @Override
     public void start(Stage stage) {
         this.primaryStage = stage;
-        this.controller = new GameController(new JsonPersistenceManager());
-        showMainMenu();
+        this.controller   = new GameController(new JsonPersistenceManager());
         stage.setTitle("Dungeon Protocol");
         stage.setMinWidth(940);
         stage.setMinHeight(660);
+        showMainMenu();
         stage.show();
     }
 
+    // -------------------------------------------------------------------------
+    // Scene transitions
+    // -------------------------------------------------------------------------
+
     private void showMainMenu() {
-        VBox menu = new VBox(18);
-        menu.setAlignment(Pos.CENTER);
-        menu.setPadding(new Insets(60));
-        menu.setStyle("-fx-background-color: #0a0a1e;");
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/it/unicam/cs/mpgc/rpg126224/fxml/MainMenu.fxml"));
+            Parent root = loader.load();
 
-        Label title = new Label("DUNGEON PROTOCOL");
-        title.setFont(Font.font("Monospace", FontWeight.BOLD, 44));
-        title.setTextFill(Color.web("#e94560"));
+            MainMenuViewController fxmlCtrl = loader.getController();
+            fxmlCtrl.setup(controller,
+                    this::showCharacterCreation,
+                    this::showGame,
+                    primaryStage::close);
 
-        javafx.scene.effect.DropShadow glow =
-                new javafx.scene.effect.DropShadow(20, Color.web("#e94560"));
-        title.setEffect(glow);
-        Timeline glowAnim = new Timeline(
-                new KeyFrame(Duration.ZERO, new KeyValue(glow.radiusProperty(), 10)),
-                new KeyFrame(Duration.millis(1200), new KeyValue(glow.radiusProperty(), 28))
-        );
-        glowAnim.setAutoReverse(true);
-        glowAnim.setCycleCount(Animation.INDEFINITE);
-        glowAnim.play();
-
-        Label tagline = new Label("Enter the dungeon. Survive or perish.");
-        tagline.setFont(Font.font("Monospace", 15));
-        tagline.setTextFill(Color.web("#404060"));
-
-        Button newGameBtn  = menuButton("New Game",  "#c0392b");
-        Button loadGameBtn = menuButton("Load Game", "#1a5276");
-        Button quitBtn     = menuButton("Quit",      "#2a2a3a");
-
-        loadGameBtn.setDisable(!controller.getPersistenceManager().hasSaveFile());
-        newGameBtn.setOnAction(e  -> showCharacterCreation());
-        loadGameBtn.setOnAction(e -> { if (controller.loadGame()) showGame(); });
-        quitBtn.setOnAction(e     -> primaryStage.close());
-
-        VBox buttons = new VBox(10, newGameBtn, loadGameBtn, quitBtn);
-        buttons.setAlignment(Pos.CENTER);
-        buttons.setOpacity(0);
-        FadeTransition fade = new FadeTransition(Duration.millis(800), buttons);
-        fade.setToValue(1);
-        fade.play();
-
-        menu.getChildren().addAll(title, tagline, new Separator(), buttons);
-        primaryStage.setScene(new Scene(menu, 940, 660));
+            primaryStage.setScene(new Scene(root, 940, 660));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load MainMenu.fxml", e);
+        }
     }
 
     private void showCharacterCreation() {
-        CharacterCreationView creation = new CharacterCreationView(controller, this::showGame);
-        primaryStage.setScene(new Scene(creation, 940, 660));
+        CharacterCreationView creation =
+                new CharacterCreationView(controller, this::showGame);
+        primaryStage.setScene(new Scene(creation.getRoot(), 940, 660));
     }
 
-    void showGame() {
-        GameView game = new GameView(controller, this::showMainMenu);
-        Scene scene = new Scene(game, 960, 680);
+    private void showGame() {
+        GameView game  = new GameView(controller, this::showMainMenu);
+        Scene    scene = new Scene(game.getRoot(), 960, 680);
+        game.setupKeyboard(scene);
         primaryStage.setScene(scene);
-        game.requestFocus();
         Platform.runLater(game::refresh);
-    }
-
-    private Button menuButton(String text, String color) {
-        Button btn = new Button(text);
-        btn.setPrefWidth(280);
-        btn.setStyle("-fx-background-color: " + color + "; -fx-text-fill: #e0e0ff; " +
-                "-fx-font-family: Monospace; -fx-font-size: 15; -fx-padding: 13 24; " +
-                "-fx-background-radius: 6;");
-        return btn;
     }
 
     public static void main(String[] args) { launch(args); }
