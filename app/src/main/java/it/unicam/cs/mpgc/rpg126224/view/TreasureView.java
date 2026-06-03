@@ -2,6 +2,7 @@ package it.unicam.cs.mpgc.rpg126224.view;
 
 import it.unicam.cs.mpgc.rpg126224.model.Item;
 import it.unicam.cs.mpgc.rpg126224.model.ItemType;
+import it.unicam.cs.mpgc.rpg126224.model.Rarity;
 import javafx.animation.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -47,7 +48,19 @@ public class TreasureView {
 
         // Root is a StackPane so particles sit behind content
         StackPane root = new StackPane();
-        root.setStyle("-fx-background-color: #110d00;");
+        // Background color based on highest rarity in loot
+        Rarity maxRarity = items.stream()
+                .map(Item::getRarity)
+                .max(java.util.Comparator.comparingInt(Enum::ordinal))
+                .orElse(Rarity.COMMON);
+
+        String bgColor = switch (maxRarity) {
+            case COMMON    -> "#0d0d0d";
+            case RARE      -> "#000d1a";
+            case EPIC      -> "#0d0018";
+            case LEGENDARY -> "#1a0d00";
+        };
+        root.setStyle("-fx-background-color: " + bgColor + ";");
 
         // Particle canvas
         Canvas particleCanvas = new Canvas(width, height);
@@ -60,7 +73,7 @@ public class TreasureView {
         content.setAlignment(Pos.CENTER);
         content.setPadding(new Insets(28));
 
-        content.getChildren().add(buildTitle());
+        content.getChildren().add(buildTitle(maxRarity));
         content.getChildren().add(buildItemsBox());
         content.getChildren().add(buildCloseButton(stage, timer));
 
@@ -80,24 +93,37 @@ public class TreasureView {
     // UI sections
     // -------------------------------------------------------------------------
 
-    private Label buildTitle() {
-        Label title = new Label("✦  TREASURE FOUND!  ✦");
-        title.setFont(Font.font("Monospace", FontWeight.BOLD, 20));
-        title.setTextFill(Color.web("#ffd700"));
+    private Label buildTitle(Rarity maxRarity) {
+        String titleText = switch (maxRarity) {
+            case COMMON    -> "✦  TREASURE FOUND!  ✦";
+            case RARE      -> "✦✦  RARE TREASURE!  ✦✦";
+            case EPIC      -> "★★  EPIC TREASURE!  ★★";
+            case LEGENDARY -> "✦★  LEGENDARY LOOT!  ★✦";
+        };
+        String glowHex = maxRarity.getColor();
 
-        DropShadow glow = new DropShadow(18, Color.web("#ffd700"));
+        Label title = new Label(titleText);
+        title.setFont(Font.font("Monospace", FontWeight.BOLD, 20));
+        title.setTextFill(Color.web(glowHex));
+
+        DropShadow glow = new DropShadow(18, Color.web(glowHex));
         title.setEffect(glow);
 
-        // Glow pulse
+        double glowMax = switch (maxRarity) {
+            case COMMON    -> 20;
+            case RARE      -> 28;
+            case EPIC      -> 36;
+            case LEGENDARY -> 48;
+        };
+
         Timeline glowTl = new Timeline(
                 new KeyFrame(Duration.ZERO,        new KeyValue(glow.radiusProperty(), 8)),
-                new KeyFrame(Duration.millis(900),  new KeyValue(glow.radiusProperty(), 24))
+                new KeyFrame(Duration.millis(900),  new KeyValue(glow.radiusProperty(), glowMax))
         );
         glowTl.setAutoReverse(true);
         glowTl.setCycleCount(Animation.INDEFINITE);
         glowTl.play();
 
-        // Scale pop entrance
         ScaleTransition pop = new ScaleTransition(Duration.millis(500), title);
         pop.setFromX(0.6); pop.setFromY(0.6);
         pop.setToX(1.0);   pop.setToY(1.0);
@@ -118,33 +144,64 @@ public class TreasureView {
     }
 
     private HBox buildItemCard(Item item, int index) {
+        Rarity rarity = item.getRarity();
+        String rarityColor = rarity.getColor();
+
+        String cardBg = switch (rarity) {
+            case COMMON    -> "#0d0d0d";
+            case RARE      -> "#001428";
+            case EPIC      -> "#120028";
+            case LEGENDARY -> "#1a0d00";
+        };
+
         HBox card = new HBox(14);
         card.setAlignment(Pos.CENTER_LEFT);
         card.setPadding(new Insets(10, 18, 10, 18));
         card.setStyle(
-                "-fx-background-color: #1e1800; " +
-                "-fx-border-color: #6a5000; " +
+                "-fx-background-color: " + cardBg + "; " +
+                "-fx-border-color: " + rarityColor + "; " +
                 "-fx-border-radius: 8; -fx-background-radius: 8;"
         );
         card.setMaxWidth(350);
 
-        // Icon with glow
+        // Border glow for rare+
+        if (rarity != Rarity.COMMON) {
+            DropShadow cardGlow = new DropShadow(8, Color.web(rarityColor, 0.6));
+            card.setEffect(cardGlow);
+            if (rarity == Rarity.LEGENDARY) {
+                Timeline cardPulse = new Timeline(
+                        new KeyFrame(Duration.ZERO,        new KeyValue(cardGlow.radiusProperty(), 6)),
+                        new KeyFrame(Duration.millis(800),  new KeyValue(cardGlow.radiusProperty(), 18))
+                );
+                cardPulse.setAutoReverse(true);
+                cardPulse.setCycleCount(Timeline.INDEFINITE);
+                cardPulse.play();
+            }
+        }
+
+        // Icon
         Label icon = new Label(getItemEmoji(item.getType()));
         icon.setFont(Font.font("Segoe UI Emoji", 28));
-        Glow iconGlow = new Glow(0.5);
+        Glow iconGlow = new Glow(rarity == Rarity.LEGENDARY ? 0.8 : 0.5);
         icon.setEffect(iconGlow);
 
         // Text info
         VBox info = new VBox(3);
+
+        // Rarity badge + name
+        Label rarityBadge = new Label("[" + rarity.getDisplayName().toUpperCase() + "]");
+        rarityBadge.setFont(Font.font("Monospace", FontWeight.BOLD, 10));
+        rarityBadge.setTextFill(Color.web(rarityColor));
+
         Label name = new Label(item.getName());
         name.setFont(Font.font("Monospace", FontWeight.BOLD, 13));
-        name.setTextFill(Color.web("#ffe080"));
+        name.setTextFill(Color.web(rarityColor));
 
         Label effect = new Label(getEffectDescription(item));
         effect.setFont(Font.font("Monospace", 11));
-        effect.setTextFill(Color.web("#907830"));
+        effect.setTextFill(Color.web(rarityColor, 0.7));
 
-        info.getChildren().addAll(name, effect);
+        info.getChildren().addAll(rarityBadge, name, effect);
         card.getChildren().addAll(icon, info);
 
         // Staggered slide-in from left + fade

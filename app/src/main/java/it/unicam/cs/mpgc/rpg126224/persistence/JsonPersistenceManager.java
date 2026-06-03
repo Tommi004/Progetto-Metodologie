@@ -1,6 +1,7 @@
 package it.unicam.cs.mpgc.rpg126224.persistence;
 
 import it.unicam.cs.mpgc.rpg126224.model.*;
+import it.unicam.cs.mpgc.rpg126224.model.Rarity;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
@@ -42,6 +43,7 @@ public class JsonPersistenceManager implements PersistenceManager {
                 sb.append("inv_").append(i).append("_name=").append(item.getName()).append("\n");
                 sb.append("inv_").append(i).append("_type=").append(item.getType().name()).append("\n");
                 sb.append("inv_").append(i).append("_value=").append(item.getValue()).append("\n");
+                sb.append("inv_").append(i).append("_rarity=").append(item.getRarity().name()).append("\n");
             }
             sb.append("dungeonRows=").append(dungeon.getRows()).append("\n");
             sb.append("dungeonCols=").append(dungeon.getCols()).append("\n");
@@ -70,6 +72,7 @@ public class JsonPersistenceManager implements PersistenceManager {
                         sb.append(ip).append("name=").append(item.getName()).append("\n");
                         sb.append(ip).append("type=").append(item.getType().name()).append("\n");
                         sb.append(ip).append("value=").append(item.getValue()).append("\n");
+                        sb.append(ip).append("rarity=").append(item.getRarity().name()).append("\n");
                     }
                 }
             }
@@ -112,6 +115,7 @@ public class JsonPersistenceManager implements PersistenceManager {
         int savedHp    = getInt(d, "heroHp");
         if (savedMaxHp > hero.getMaxHp()) {
             int diff = savedMaxHp - hero.getMaxHp();
+            // Ripristina maxHp tramite i livelli guadagnati
             hero.setMaxHp(savedMaxHp);
         }
         if (savedHp > 0) hero.setCurrentHp(savedHp);
@@ -131,8 +135,10 @@ public class JsonPersistenceManager implements PersistenceManager {
         hero.setExperience(getInt(d, "heroXp"));
         int invSize = getInt(d, "inventorySize");
         for (int i = 0; i < invSize; i++) {
+            String rarityStr = d.getOrDefault("inv_"+i+"_rarity", "COMMON");
+            Rarity rarity = Rarity.valueOf(rarityStr);
             hero.addItem(new Item(d.get("inv_"+i+"_id"), d.get("inv_"+i+"_name"),
-                    ItemType.valueOf(d.get("inv_"+i+"_type")), getInt(d, "inv_"+i+"_value")));
+                    ItemType.valueOf(d.get("inv_"+i+"_type")), getInt(d, "inv_"+i+"_value"), rarity));
         }
         int dRows = getInt(d, "dungeonRows");
         int dCols = getInt(d, "dungeonCols");

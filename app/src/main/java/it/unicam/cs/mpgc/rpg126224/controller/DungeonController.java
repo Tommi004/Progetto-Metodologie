@@ -10,4 +10,7 @@ public interface DungeonController {
     Dungeon generateDungeon(int level);
     boolean moveHero(Hero hero, Dungeon dungeon, int dRow, int dCol);
     Room getCurrentRoom(Hero hero, Dungeon dungeon);
+
+    /** Resets the unique-item tracker. Call only when starting a brand new run. */
+    void resetUniqueItems();
 }

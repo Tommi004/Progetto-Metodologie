@@ -64,7 +64,15 @@ public class HeroStatusViewController implements ViewRefreshable {
 
         List<Item> inv = hero.getInventory();
         inventoryList.getItems().setAll(
-                inv.stream().map(i -> getItemEmoji(i.getType()) + " " + i.getName()).toList()
+                inv.stream().map(i -> {
+                    String emoji = getItemEmoji(i.getType());
+                    // Show rarity badge only for non-common items not already named with rarity
+                    if (i.getRarity() != it.unicam.cs.mpgc.rpg126224.model.Rarity.COMMON
+                            && !i.getName().startsWith(i.getRarity().getDisplayName())) {
+                        return emoji + " [" + i.getRarity().getDisplayName().charAt(0) + "] " + i.getName();
+                    }
+                    return emoji + " " + i.getName();
+                }).toList()
         );
         if (inv.isEmpty()) inventoryList.getItems().add("(empty)");
     }
