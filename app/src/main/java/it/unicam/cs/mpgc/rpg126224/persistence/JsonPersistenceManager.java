@@ -25,6 +25,8 @@ public class JsonPersistenceManager implements PersistenceManager {
             sb.append("heroAttack=").append(hero.getAttack()).append("\n");
             sb.append("heroDefense=").append(hero.getDefense()).append("\n");
             sb.append("heroMagic=").append(hero.getMagic()).append("\n");
+            sb.append("heroCurrentMana=").append(hero.getCurrentMana()).append("\n");
+            sb.append("heroMaxMana=").append(hero.getMaxMana()).append("\n");
             sb.append("heroLevel=").append(hero.getLevel()).append("\n");
             sb.append("heroXp=").append(hero.getExperience()).append("\n");
             sb.append("heroRow=").append(hero.getRow()).append("\n");
@@ -110,7 +112,6 @@ public class JsonPersistenceManager implements PersistenceManager {
         int savedHp    = getInt(d, "heroHp");
         if (savedMaxHp > hero.getMaxHp()) {
             int diff = savedMaxHp - hero.getMaxHp();
-            // Ripristina maxHp tramite i livelli guadagnati
             hero.setMaxHp(savedMaxHp);
         }
         if (savedHp > 0) hero.setCurrentHp(savedHp);
@@ -121,6 +122,11 @@ public class JsonPersistenceManager implements PersistenceManager {
         if (savedAttack  > 0) hero.boostAttack(savedAttack - hero.getAttack());
         if (savedDefense > 0) hero.boostDefense(savedDefense - hero.getDefense());
         if (savedMagic   > 0) hero.boostMagic(savedMagic - hero.getMagic());
+        int savedMaxMana     = getInt(d, "heroMaxMana");
+        int savedCurrentMana = getInt(d, "heroCurrentMana");
+        if (savedMaxMana > hero.getMaxMana())
+            hero.setMaxMana(savedMaxMana);
+        hero.setCurrentMana(savedCurrentMana);
         hero.setLevel(getInt(d, "heroLevel"));
         hero.setExperience(getInt(d, "heroXp"));
         int invSize = getInt(d, "inventorySize");

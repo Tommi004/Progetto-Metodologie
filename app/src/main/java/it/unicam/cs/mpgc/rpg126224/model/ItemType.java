@@ -24,5 +24,8 @@ public enum ItemType {
     AMULET,
 
     /** Temporarily boosts attack. */
-    STRENGTH_POTION
+    STRENGTH_POTION,
+
+    /** Restores mana to the hero. */
+    MANA_POTION
 }

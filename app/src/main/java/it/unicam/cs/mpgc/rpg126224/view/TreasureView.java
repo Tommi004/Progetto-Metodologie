@@ -246,16 +246,18 @@ public class TreasureView {
             case ARMOR           -> "🛡";
             case AMULET          -> "📿";
             case STRENGTH_POTION -> "💪";
+            case MANA_POTION     -> "💧";
         };
     }
 
     private String getEffectDescription(Item item) {
         return switch (item.getType()) {
             case HEALTH_POTION   -> "Restores +" + item.getValue() + " HP";
-            case SWORD, BOW      -> "Attack +"  + item.getValue() + " (permanent)";
-            case STAFF, AMULET   -> "Magic +"   + item.getValue() + " (permanent)";
-            case ARMOR           -> "Defense +" + item.getValue() + " (permanent)";
-            case STRENGTH_POTION -> "Attack +"  + item.getValue() + " boost";
+            case SWORD, BOW      -> "Attack +"   + item.getValue() + " (permanent)";
+            case STAFF, AMULET   -> "Magic +"    + item.getValue() + " (permanent)";
+            case ARMOR           -> "Defense +"  + item.getValue() + " (permanent)";
+            case STRENGTH_POTION -> "Attack +"   + item.getValue() + " boost";
+            case MANA_POTION     -> "Restores +" + item.getValue() + " MP";
         };
     }
 

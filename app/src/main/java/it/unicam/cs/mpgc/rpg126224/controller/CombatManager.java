@@ -9,7 +9,6 @@ import java.util.Random;
 public class CombatManager implements CombatController {
 
     private static final double FLEE_SUCCESS_RATE = 0.45;
-    private static final int TROLL_REGEN = 5;
     private final Random random = new Random();
 
     @Override
@@ -21,14 +20,25 @@ public class CombatManager implements CombatController {
 
         switch (action) {
             case ATTACK -> {
-                heroDmg = calcHeroAttack(hero);
-                enemy.takeDamage(heroDmg);
+                int raw = calcHeroAttack(hero);
+                int hpBefore = enemy.getCurrentHp();
+                enemy.takeDamage(raw);
+                heroDmg = hpBefore - enemy.getCurrentHp();
                 msg.append(hero.getName()).append(" attacks for ").append(heroDmg).append(" dmg. ");
             }
             case SPECIAL -> {
-                heroDmg = calcHeroSpecial(hero);
-                enemy.takeDamage(heroDmg);
-                msg.append(hero.getName()).append(" uses special for ").append(heroDmg).append(" dmg. ");
+                int manaCost = hero.getHeroClass().getSpecialManaCost();
+                if (!hero.useMana(manaCost)) {
+                    msg.append("Not enough mana! (need ").append(manaCost)
+                       .append(", have ").append(hero.getCurrentMana()).append(") ");
+                } else {
+                    int raw = calcHeroSpecial(hero);
+                    int hpBefore = enemy.getCurrentHp();
+                    enemy.takeDamage(raw);
+                    heroDmg = hpBefore - enemy.getCurrentHp();
+                    msg.append(hero.getName()).append(" uses special for ")
+                       .append(heroDmg).append(" dmg. (-").append(manaCost).append(" MP) ");
+                }
             }
             case USE_POTION -> {
                 boolean used = usePotion(hero);
@@ -43,11 +53,6 @@ public class CombatManager implements CombatController {
                     msg.append("Flee attempt failed! ");
                 }
             }
-        }
-
-        if (!fled && enemy.isAlive() && enemy.getType() == EnemyType.TROLL) {
-            enemy.heal(TROLL_REGEN);
-            msg.append("Troll regenerates ").append(TROLL_REGEN).append(" HP. ");
         }
 
         if (!fled && enemy.isAlive()) {
@@ -95,7 +100,7 @@ public class CombatManager implements CombatController {
                 msg.append(enemy.getName()).append(" attacks twice for ")
                    .append(hit1).append("+").append(hit2).append(" dmg. ");
             }
-            case DARK_MAGE -> {
+            case DARK_MAGE, WITCH -> {
                 int spellDmg = Math.max(1, enemy.getMagic() - hero.getDefense() / 3);
                 hero.takeDamage(spellDmg);
                 dmg = spellDmg;
@@ -110,6 +115,52 @@ public class CombatManager implements CombatController {
                 dmg = hit1 + hit2;
                 msg.append(enemy.getName()).append(" strikes twice for ")
                    .append(hit1).append("+").append(hit2).append(" dmg! ");
+            }
+            case KNIGHT -> {
+                // Tank: heavy single hit, ignores more defense
+                dmg = Math.max(1, enemy.getAttack() - hero.getDefense() / 4);
+                hero.takeDamage(dmg);
+                msg.append(enemy.getName()).append(" slams for ").append(dmg).append(" dmg! ");
+            }
+            case DEMON -> {
+                // Hybrid: physical + magic combo
+                int physDmg  = Math.max(1, enemy.getAttack() - hero.getDefense() / 2);
+                int magicDmg = Math.max(1, enemy.getMagic()  - hero.getDefense() / 3);
+                hero.takeDamage(physDmg);
+                hero.takeDamage(magicDmg);
+                dmg = physDmg + magicDmg;
+                msg.append(enemy.getName()).append(" strikes with dark power for ")
+                   .append(physDmg).append("+").append(magicDmg).append(" dmg! ");
+            }
+            case LEVIATHAN -> {
+                // Massive single hit + ignores defense entirely
+                dmg = Math.max(1, enemy.getAttack() - hero.getDefense() / 4);
+                hero.takeDamage(dmg);
+                msg.append("The ").append(enemy.getName())
+                   .append(" crushes you for ").append(dmg).append(" dmg! ");
+            }
+            case DEMON_LORD -> {
+                // Dual hit: physical + devastating magic
+                int physDmg  = Math.max(1, enemy.getAttack() - hero.getDefense() / 3);
+                int magicDmg = Math.max(1, enemy.getMagic()  - hero.getDefense() / 4);
+                hero.takeDamage(physDmg);
+                hero.takeDamage(magicDmg);
+                dmg = physDmg + magicDmg;
+                msg.append(enemy.getName()).append(" unleashes infernal wrath for ")
+                   .append(physDmg).append("+").append(magicDmg).append(" dmg! ");
+            }
+            case DEMON_SOUL -> {
+                // Relentless: 3 magic hits, ignores all defense
+                int hit1 = Math.max(1, enemy.getMagic() - hero.getDefense() / 5);
+                int hit2 = Math.max(1, enemy.getMagic() - hero.getDefense() / 5);
+                int hit3 = Math.max(1, enemy.getAttack() - hero.getDefense() / 4);
+                hero.takeDamage(hit1);
+                hero.takeDamage(hit2);
+                hero.takeDamage(hit3);
+                dmg = hit1 + hit2 + hit3;
+                msg.append("DEMON SOUL unleashes chaos for ")
+                   .append(hit1).append("+").append(hit2).append("+").append(hit3)
+                   .append(" dmg!!! ");
             }
             default -> {
                 dmg = Math.max(1, enemy.getAttack() - hero.getDefense() / 2);

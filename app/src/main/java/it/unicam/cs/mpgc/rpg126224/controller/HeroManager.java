@@ -30,11 +30,10 @@ public class HeroManager implements HeroController {
         switch (item.getType()) {
             case HEALTH_POTION    -> hero.heal(item.getValue());
             case STRENGTH_POTION  -> hero.boostAttack(item.getValue());
-            case SWORD            -> hero.boostAttack(item.getValue());
-            case BOW              -> hero.boostAttack(item.getValue());
-            case STAFF            -> hero.boostMagic(item.getValue());
+            case MANA_POTION      -> hero.restoreMana(item.getValue());
+            case SWORD, BOW       -> hero.boostAttack(item.getValue());
+            case STAFF, AMULET    -> hero.boostMagic(item.getValue());
             case ARMOR            -> hero.boostDefense(item.getValue());
-            case AMULET           -> hero.boostMagic(item.getValue());
         }
     }
 }

@@ -71,7 +71,9 @@ public class DungeonManager implements DungeonController {
         return switch (level) {
             case 1  -> EnemyType.TROLL;
             case 2  -> EnemyType.ASSASSIN;
-            default -> EnemyType.DRAGON;
+            case 3  -> EnemyType.DRAGON;
+            case 4  -> EnemyType.LEVIATHAN;
+            default -> EnemyType.DEMON_LORD;
         };
     }
 
@@ -85,15 +87,23 @@ public class DungeonManager implements DungeonController {
                 EnemyType[] types = {EnemyType.SKELETON, EnemyType.DARK_MAGE};
                 yield types[random.nextInt(types.length)];
             }
-            default -> {
+            case 3 -> {
                 EnemyType[] types = {EnemyType.GOBLIN, EnemyType.SKELETON, EnemyType.DARK_MAGE};
+                yield types[random.nextInt(types.length)];
+            }
+            case 4 -> {
+                EnemyType[] types = {EnemyType.KNIGHT, EnemyType.DARK_MAGE};
+                yield types[random.nextInt(types.length)];
+            }
+            default -> {
+                EnemyType[] types = {EnemyType.DEMON, EnemyType.WITCH, EnemyType.KNIGHT};
                 yield types[random.nextInt(types.length)];
             }
         };
     }
 
     private Item createRandomItem(int level) {
-        int roll = random.nextInt(6);
+        int roll = random.nextInt(8);
         int bonus = 5 + (level * 3);
         return switch (roll) {
             case 0 -> new Item(UUID.randomUUID().toString(), "Health Potion",
@@ -106,8 +116,12 @@ public class DungeonManager implements DungeonController {
                     ItemType.STAFF, bonus);
             case 4 -> new Item(UUID.randomUUID().toString(), "Steel Armor",
                     ItemType.ARMOR, bonus);
-            default -> new Item(UUID.randomUUID().toString(), "Ancient Amulet",
+            case 5 -> new Item(UUID.randomUUID().toString(), "Ancient Amulet",
                     ItemType.AMULET, bonus);
+            case 6 -> new Item(UUID.randomUUID().toString(), "Strength Potion",
+                    ItemType.STRENGTH_POTION, bonus);
+            default -> new Item(UUID.randomUUID().toString(), "Mana Potion",
+                    ItemType.MANA_POTION, 20 + level * 8);
         };
     }
 }

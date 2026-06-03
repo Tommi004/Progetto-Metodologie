@@ -41,7 +41,7 @@ public class GameViewController implements ViewRefreshable {
 
         // Replace placeholders with actual sub-views
         heroStatusPlaceholder.getChildren().add(heroStatus.getRoot());
-        mapPlaceholder.getChildren().add(mapView);
+        mapPlaceholder.getChildren().add(mapView.getRoot());
     }
 
     /**
@@ -65,10 +65,6 @@ public class GameViewController implements ViewRefreshable {
 
     @FXML private void handleSave()  { gameController.saveGame(); showMessage("✓ Game saved."); }
     @FXML private void handleMenu()  { onReturnToMenu.run(); }
-    @FXML private void handleUp()    { handleMove(-1,  0); }
-    @FXML private void handleDown()  { handleMove( 1,  0); }
-    @FXML private void handleLeft()  { handleMove( 0, -1); }
-    @FXML private void handleRight() { handleMove( 0,  1); }
 
     // -------------------------------------------------------------------------
     // Movement and room logic
@@ -80,6 +76,7 @@ public class GameViewController implements ViewRefreshable {
             showMessage("⛔ Can't move there.");
             return;
         }
+        showMessage("");
         refresh();
         handleRoomEntry();
     }
@@ -155,7 +152,7 @@ public class GameViewController implements ViewRefreshable {
     private void updateRoomInfo() {
         Room room = gameController.getCurrentRoom();
         StringBuilder info = new StringBuilder();
-        info.append("🏰 Floor ").append(gameController.getDungeonLevel()).append("/3");
+        info.append("🏰 Floor ").append(gameController.getDungeonLevel()).append("/5");
         info.append("   📍 [").append(room.getRow()).append(",").append(room.getCol()).append("]");
         info.append("   ").append(room.getType());
         if (!room.isCleared() && !room.getEnemies().isEmpty())

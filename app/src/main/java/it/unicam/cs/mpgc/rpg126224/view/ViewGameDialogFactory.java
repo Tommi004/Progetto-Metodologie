@@ -39,7 +39,7 @@ public class ViewGameDialogFactory {
         title.setEffect(glow("#ffd700", 20));
 
         Label msg = bodyLabel("You defeated the boss!");
-        Label sub = subLabel("Descending to floor " + newLevel + " of 3...", "#8080b0");
+        Label sub = subLabel("Descending to floor " + newLevel + " of 5...", "#8080b0");
 
         Button okBtn = confirmButton("CONTINUE", "#8a6a00", "#ffd700");
         okBtn.setOnAction(e -> dialog.close());

@@ -29,6 +29,11 @@
                     <Label fx:id="heroLevelLabel"
                            style="-fx-font-family: Monospace; -fx-font-size: 10;
                                   -fx-text-fill: #6080a0;"/>
+                    <Label fx:id="heroManaLabel"
+                           style="-fx-font-family: Monospace; -fx-font-size: 10;
+                                  -fx-text-fill: #44aaff;"/>
+                    <ProgressBar fx:id="heroManaBar" prefWidth="160" prefHeight="6"
+                                 style="-fx-accent: #44aaff; -fx-background-color: #0a1a2a;"/>
                 </VBox>
             </StackPane>
 

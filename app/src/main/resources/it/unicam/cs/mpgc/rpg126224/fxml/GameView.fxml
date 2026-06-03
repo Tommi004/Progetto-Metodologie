@@ -49,35 +49,8 @@
                           -fx-text-fill: #8080b0;"/>
 
             <!-- Map is added programmatically (DungeonMapView is not FXML-compatible) -->
-            <Pane fx:id="mapPlaceholder"/>
+            <Pane fx:id="mapPlaceholder" prefWidth="480" prefHeight="480"/>
 
-            <!-- Movement controls -->
-            <GridPane alignment="CENTER" hgap="6" vgap="6">
-                <Button fx:id="upBtn"    text="▲" prefWidth="44" prefHeight="44"
-                        onAction="#handleUp"
-                        style="-fx-background-color: #12122a; -fx-text-fill: #8080c0;
-                               -fx-font-size: 16; -fx-background-radius: 6;
-                               -fx-border-color: #2a2a5a; -fx-border-radius: 6; -fx-cursor: hand;"
-                        GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-                <Button fx:id="leftBtn"  text="◀" prefWidth="44" prefHeight="44"
-                        onAction="#handleLeft"
-                        style="-fx-background-color: #12122a; -fx-text-fill: #8080c0;
-                               -fx-font-size: 16; -fx-background-radius: 6;
-                               -fx-border-color: #2a2a5a; -fx-border-radius: 6; -fx-cursor: hand;"
-                        GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                <Button fx:id="downBtn"  text="▼" prefWidth="44" prefHeight="44"
-                        onAction="#handleDown"
-                        style="-fx-background-color: #12122a; -fx-text-fill: #8080c0;
-                               -fx-font-size: 16; -fx-background-radius: 6;
-                               -fx-border-color: #2a2a5a; -fx-border-radius: 6; -fx-cursor: hand;"
-                        GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                <Button fx:id="rightBtn" text="▶" prefWidth="44" prefHeight="44"
-                        onAction="#handleRight"
-                        style="-fx-background-color: #12122a; -fx-text-fill: #8080c0;
-                               -fx-font-size: 16; -fx-background-radius: 6;
-                               -fx-border-color: #2a2a5a; -fx-border-radius: 6; -fx-cursor: hand;"
-                        GridPane.columnIndex="2" GridPane.rowIndex="1"/>
-            </GridPane>
 
             <Label fx:id="messageLabel" maxWidth="Infinity" alignment="CENTER"
                    style="-fx-font-family: Monospace; -fx-font-size: 12;

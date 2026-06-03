@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!--
+    DungeonMap.fxml
+    Themed wrapper around the DungeonMapView Canvas.
+    The canvasPlaceholder Pane is populated at runtime by DungeonMapView.
+    Theme (colors, title, icon) is applied by DungeonMapViewController.refresh().
+-->
+<BorderPane fx:id="rootPane"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="it.unicam.cs.mpgc.rpg126224.view.DungeonMapViewController">
+
+    <!-- Header: dungeon name + level icon -->
+    <top>
+        <HBox fx:id="headerBox" alignment="CENTER" spacing="10"
+              style="-fx-padding: 6 12 6 12;">
+            <Label fx:id="levelIconLabel"
+                   style="-fx-font-size: 20;"/>
+            <Label fx:id="dungeonNameLabel"
+                   style="-fx-font-family: Monospace; -fx-font-size: 13;
+                          -fx-font-weight: bold;"/>
+            <Label fx:id="levelLabel"
+                   style="-fx-font-family: Monospace; -fx-font-size: 11;
+                          -fx-text-fill: #808080;"/>
+        </HBox>
+    </top>
+
+    <!-- Center: canvas inserted programmatically -->
+    <center>
+        <StackPane fx:id="canvasPlaceholder"/>
+    </center>
+
+</BorderPane>

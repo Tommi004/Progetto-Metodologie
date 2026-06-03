@@ -7,7 +7,7 @@ import java.util.Objects;
  */
 public class GameState {
 
-    public static final int MAX_DUNGEON_LEVEL = 3;
+    public static final int MAX_DUNGEON_LEVEL = 5;
 
     private final Hero hero;
     private Dungeon dungeon;

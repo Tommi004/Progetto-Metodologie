@@ -3,6 +3,8 @@ package it.unicam.cs.mpgc.rpg126224.view;
 import it.unicam.cs.mpgc.rpg126224.controller.GameController;
 import it.unicam.cs.mpgc.rpg126224.model.*;
 import javafx.animation.*;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
@@ -14,20 +16,31 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
 
+import java.io.IOException;
+
 /**
  * Enhanced dungeon map rendered on a JavaFX Canvas.
  * Features: fog of war with radial gradient, corridors between rooms,
  * animated hero movement, pulsing enemy indicators, glow effects.
+ *
+ * The Canvas is embedded inside a themed FXML wrapper (DungeonMap.fxml)
+ * managed by {@link DungeonMapViewController}, which applies a different
+ * visual theme (colors, title, icon) for each of the 5 dungeon levels.
+ *
+ * Single responsibility: this class handles only Canvas rendering.
+ * Theme and structural layout live in DungeonMapViewController / DungeonMap.fxml.
  */
-public class DungeonMapView extends Pane implements ViewRefreshable {
+public class DungeonMapView implements ViewRefreshable {
 
     private static final int CELL  = 52;   // cell size in px
     private static final int GAP   = 4;    // gap between cells
     private static final int STEP  = CELL + GAP;
     private static final int PAD   = 14;   // canvas padding
 
-    private final GameController controller;
-    private final Canvas canvas;
+    private final GameController       controller;
+    private final Canvas               canvas;
+    private final Parent               root;
+    private final DungeonMapViewController fxmlController;
 
     // Hero's animated position (in pixels, relative to canvas)
     private double heroX;
@@ -37,9 +50,7 @@ public class DungeonMapView extends Pane implements ViewRefreshable {
     public DungeonMapView(GameController controller) {
         this.controller = controller;
 
-        Dungeon d = controller.getDungeon() != null
-                ? controller.getDungeon()
-                : null;
+        Dungeon d = controller.getDungeon() != null ? controller.getDungeon() : null;
         int cols = d != null ? d.getCols() : 8;
         int rows = d != null ? d.getRows() : 8;
 
@@ -47,11 +58,33 @@ public class DungeonMapView extends Pane implements ViewRefreshable {
         double h = PAD * 2 + rows * STEP - GAP;
 
         canvas = new Canvas(w, h);
-        getChildren().add(canvas);
-        setPrefSize(w, h);
+
+        // Load FXML wrapper
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource(
+                            "/it/unicam/cs/mpgc/rpg126224/fxml/DungeonMap.fxml"));
+            root = loader.load();
+            fxmlController = loader.getController();
+            fxmlController.setup(controller);
+
+            // Place canvas inside the FXML placeholder StackPane
+            javafx.scene.layout.StackPane placeholder = fxmlController.getCanvasPlaceholder();
+            javafx.scene.layout.StackPane.setAlignment(canvas, javafx.geometry.Pos.TOP_LEFT);
+            placeholder.getChildren().add(canvas);
+            placeholder.setMinSize(w, h);
+            placeholder.setPrefSize(w, h);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load DungeonMap.fxml", e);
+        }
 
         startIdleAnimation();
     }
+
+    /**
+     * Returns the themed FXML root to be placed in the scene.
+     */
+    public Parent getRoot() { return root; }
 
     // -------------------------------------------------------------------------
     // Public refresh
@@ -60,7 +93,56 @@ public class DungeonMapView extends Pane implements ViewRefreshable {
     @Override
     public void refresh() {
         if (controller.getCurrentState() == null) return;
+        fxmlController.refresh();
         draw();
+    }
+
+    // -------------------------------------------------------------------------
+    // Level theme for Canvas
+    // -------------------------------------------------------------------------
+
+    /**
+     * Visual theme applied to the Canvas rendering for each dungeon level.
+     *
+     * @param bg           main background fill color
+     * @param corridorColor color of corridors between visited rooms
+     * @param fogColor      color of the fog-of-war overlay tint
+     * @param unvisitedBg  background of unvisited cells
+     * @param unvisitedStroke stroke of unvisited cells
+     * @param textureColor  color used for procedural texture dots/marks
+     */
+    private record CanvasTheme(
+            String bg,
+            String corridorColor,
+            String fogColor,
+            String unvisitedBg,
+            String unvisitedStroke,
+            String textureColor
+    ) {
+        static CanvasTheme forLevel(int level) {
+            return switch (level) {
+                case 1 -> new CanvasTheme(  // Stone Dungeon — grey
+                        "#08080e", "#1a1a2e", "#000008",
+                        "#0a0a12", "#141428", "#2a2a44"
+                );
+                case 2 -> new CanvasTheme(  // Cursed Crypt — dark green
+                        "#020e04", "#0a2a0e", "#00050000",
+                        "#030f05", "#0a1e0c", "#103a14"
+                );
+                case 3 -> new CanvasTheme(  // Dragon's Lair — dark red/orange
+                        "#0e0402", "#2e0a04", "#08000000",
+                        "#100403", "#2a0804", "#3a1206"
+                );
+                case 4 -> new CanvasTheme(  // Abyssal Depths — deep blue
+                        "#01040e", "#051228", "#00000800",
+                        "#020510", "#081830", "#0a2040"
+                );
+                default -> new CanvasTheme( // Infernal Realm — purple
+                        "#080010", "#200840", "#05000800",
+                        "#090012", "#1a0830", "#2a1050"
+                );
+            };
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -71,22 +153,27 @@ public class DungeonMapView extends Pane implements ViewRefreshable {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         Dungeon dungeon    = controller.getDungeon();
         Hero hero          = controller.getHero();
+        int level          = controller.getDungeonLevel();
+        CanvasTheme theme  = CanvasTheme.forLevel(level);
 
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
-        // Background
-        gc.setFill(Color.web("#06060f"));
+        // Themed background
+        gc.setFill(Color.web(theme.bg()));
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
+        // Procedural background texture
+        drawBackgroundTexture(gc, level, theme);
+
         // Draw corridors first (below cells)
-        drawCorridors(gc, dungeon, hero);
+        drawCorridors(gc, dungeon, hero, theme);
 
         // Draw cells
         for (int r = 0; r < dungeon.getRows(); r++) {
             for (int c = 0; c < dungeon.getCols(); c++) {
-                Room room   = dungeon.getRoom(r, c);
+                Room room      = dungeon.getRoom(r, c);
                 boolean isHero = hero.getRow() == r && hero.getCol() == c;
-                drawCell(gc, room, r, c, isHero, hero);
+                drawCell(gc, room, r, c, isHero, hero, theme);
             }
         }
 
@@ -101,7 +188,72 @@ public class DungeonMapView extends Pane implements ViewRefreshable {
     // Corridors
     // -------------------------------------------------------------------------
 
-    private void drawCorridors(GraphicsContext gc, Dungeon dungeon, Hero hero) {
+    /**
+     * Draws a procedural background texture on the canvas based on the dungeon level.
+     * Each level has a unique pattern: stone cracks (L1), rune dots (L2),
+     * ember sparks (L3), bubble rings (L4), arcane sigils (L5).
+     */
+    private void drawBackgroundTexture(GraphicsContext gc, int level, CanvasTheme theme) {
+        gc.setStroke(Color.web(theme.textureColor(), 0.35));
+        gc.setLineWidth(0.6);
+        double w = canvas.getWidth();
+        double h = canvas.getHeight();
+
+        switch (level) {
+            case 1 -> { // Stone cracks: irregular diagonal lines
+                for (int i = 0; i < 18; i++) {
+                    double x = (i * 37.3) % w;
+                    double y = (i * 53.7) % h;
+                    gc.strokeLine(x, y, x + 12 + (i % 5) * 3, y + 8 + (i % 4) * 2);
+                    gc.strokeLine(x + 6, y + 2, x + 6, y + 14 + (i % 3) * 2);
+                }
+            }
+            case 2 -> { // Rune dots: small circles in a loose grid
+                gc.setFill(Color.web(theme.textureColor(), 0.25));
+                for (int i = 0; i < 7; i++) {
+                    for (int j = 0; j < 7; j++) {
+                        double x = 20 + i * (w / 7);
+                        double y = 20 + j * (h / 7);
+                        gc.fillOval(x, y, 3, 3);
+                        gc.strokeOval(x - 5, y - 5, 13, 13);
+                    }
+                }
+            }
+            case 3 -> { // Ember sparks: small scattered dots + upward lines
+                gc.setFill(Color.web("#ff4400", 0.2));
+                for (int i = 0; i < 30; i++) {
+                    double x = (i * 29.7 + 10) % w;
+                    double y = (i * 43.1 + 10) % h;
+                    double s = 1.5 + (i % 3);
+                    gc.fillOval(x, y, s, s);
+                    gc.strokeLine(x + s / 2, y, x + s / 2, y - 6 - (i % 4));
+                }
+            }
+            case 4 -> { // Bubble rings: concentric circles
+                for (int i = 0; i < 8; i++) {
+                    double x = (i * 71.3 + 15) % (w - 20);
+                    double y = (i * 59.7 + 15) % (h - 20);
+                    gc.strokeOval(x, y, 14, 14);
+                    gc.strokeOval(x + 4, y + 4, 6, 6);
+                }
+            }
+            default -> { // Arcane sigils L5: X marks + small diamonds
+                for (int i = 0; i < 10; i++) {
+                    double x = (i * 61.1 + 20) % (w - 20);
+                    double y = (i * 47.3 + 20) % (h - 20);
+                    gc.strokeLine(x - 6, y - 6, x + 6, y + 6);
+                    gc.strokeLine(x + 6, y - 6, x - 6, y + 6);
+                    gc.strokeLine(x, y - 8, x + 6, y);
+                    gc.strokeLine(x + 6, y, x, y + 8);
+                    gc.strokeLine(x, y + 8, x - 6, y);
+                    gc.strokeLine(x - 6, y, x, y - 8);
+                }
+            }
+        }
+    }
+
+    private void drawCorridors(GraphicsContext gc, Dungeon dungeon, Hero hero,
+                                CanvasTheme theme) {
         for (int r = 0; r < dungeon.getRows(); r++) {
             for (int c = 0; c < dungeon.getCols(); c++) {
                 Room room = dungeon.getRoom(r, c);
@@ -121,7 +273,7 @@ public class DungeonMapView extends Pane implements ViewRefreshable {
                     double nx = PAD + nc * STEP + CELL / 2.0;
                     double ny = PAD + nr * STEP + CELL / 2.0;
 
-                    gc.setStroke(Color.web("#1a1a2e"));
+                    gc.setStroke(Color.web(theme.corridorColor()));
                     gc.setLineWidth(GAP + 2);
                     gc.strokeLine(cx, cy, nx, ny);
                 }
@@ -134,12 +286,12 @@ public class DungeonMapView extends Pane implements ViewRefreshable {
     // -------------------------------------------------------------------------
 
     private void drawCell(GraphicsContext gc, Room room, int r, int c,
-                          boolean isHero, Hero hero) {
+                          boolean isHero, Hero hero, CanvasTheme theme) {
         double x = PAD + c * STEP;
         double y = PAD + r * STEP;
 
         if (!room.isVisited()) {
-            drawUnvisitedCell(gc, x, y);
+            drawUnvisitedCell(gc, x, y, theme);
             return;
         }
 
@@ -151,10 +303,11 @@ public class DungeonMapView extends Pane implements ViewRefreshable {
         }
     }
 
-    private void drawUnvisitedCell(GraphicsContext gc, double x, double y) {
-        gc.setFill(Color.web("#080810"));
+    private void drawUnvisitedCell(GraphicsContext gc, double x, double y,
+                                   CanvasTheme theme) {
+        gc.setFill(Color.web(theme.unvisitedBg()));
         fillRoundRect(gc, x, y, CELL, CELL, 7);
-        gc.setStroke(Color.web("#111122"));
+        gc.setStroke(Color.web(theme.unvisitedStroke()));
         gc.setLineWidth(1);
         strokeRoundRect(gc, x, y, CELL, CELL, 7);
         // Question mark
@@ -238,12 +391,18 @@ public class DungeonMapView extends Pane implements ViewRefreshable {
     private String getEnemyIcon(Room room) {
         if (room.getEnemies().isEmpty()) return "!";
         return switch (room.getEnemies().get(0).getType()) {
-            case GOBLIN    -> "👺";
-            case SKELETON  -> "💀";
-            case DARK_MAGE -> "🧙";
-            case TROLL     -> "👹";
-            case ASSASSIN  -> "🗡";
-            case DRAGON    -> "🐉";
+            case GOBLIN     -> "👺";
+            case SKELETON   -> "💀";
+            case DARK_MAGE  -> "🧙";
+            case TROLL      -> "👹";
+            case ASSASSIN   -> "🗡";
+            case DRAGON     -> "🐉";
+            case KNIGHT     -> "⚔";
+            case WITCH      -> "🪄";
+            case DEMON      -> "😈";
+            case LEVIATHAN  -> "🐋";
+            case DEMON_LORD -> "👑";
+            case DEMON_SOUL -> "💀";
         };
     }
 

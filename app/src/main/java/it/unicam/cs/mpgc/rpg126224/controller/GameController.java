@@ -79,6 +79,19 @@ public class GameController {
         }
     }
 
+    /**
+     * Replaces the defeated Demon Lord with a Demon Soul in the current room.
+     * Called by the view when the phase-2 transformation is triggered.
+     *
+     * @return the new Demon Soul enemy
+     */
+    public Enemy transformToDemonSoul() {
+        Room room = getCurrentRoom();
+        Enemy soul = new Enemy(java.util.UUID.randomUUID().toString(), EnemyType.DEMON_SOUL);
+        room.addEnemy(soul);
+        return soul;
+    }
+
     public void collectRoomItems() {
         Room room = getCurrentRoom();
         List<Item> items = room.getItems();

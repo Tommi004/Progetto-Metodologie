@@ -22,6 +22,8 @@ public class HeroStatusViewController implements ViewRefreshable {
     @FXML private ProgressBar hpBar;
     @FXML private Label       xpLabel;
     @FXML private ProgressBar xpBar;
+    @FXML private Label       manaLabel;
+    @FXML private ProgressBar manaBar;
     @FXML private Label       atkLabel;
     @FXML private Label       defLabel;
     @FXML private Label       magLabel;
@@ -54,11 +56,15 @@ public class HeroStatusViewController implements ViewRefreshable {
         xpLabel.setText("XP  " + hero.getExperience() + " / " + hero.xpForNextLevel());
         xpBar.setProgress((double) hero.getExperience() / hero.xpForNextLevel());
 
+        manaLabel.setText("MP  " + hero.getCurrentMana() + " / " + hero.getMaxMana());
+        manaBar.setProgress(hero.getMaxMana() == 0 ? 0
+                : (double) hero.getCurrentMana() / hero.getMaxMana());
+
         atkLabel.setText("ATK  " + hero.getAttack());
         defLabel.setText("DEF  " + hero.getDefense());
         magLabel.setText("MAG  " + hero.getMagic());
         posLabel.setText("[" + hero.getRow() + "," + hero.getCol() + "]");
-        floorLabel.setText("Floor " + gameController.getDungeonLevel() + " / 3");
+        floorLabel.setText("Floor " + gameController.getDungeonLevel() + " / 5");
 
         List<Item> inv = hero.getInventory();
         inventoryList.getItems().setAll(
@@ -84,6 +90,7 @@ public class HeroStatusViewController implements ViewRefreshable {
             case ARMOR           -> "[AR]";
             case AMULET          -> "[AM]";
             case STRENGTH_POTION -> "[SP]";
+            case MANA_POTION     -> "[MP]";
         };
     }
 }

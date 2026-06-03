@@ -34,7 +34,7 @@ public class Enemy implements GameEntity {
 
     @Override
     public void takeDamage(int damage) {
-        int effective = Math.max(0, damage - type.getBaseDefense());
+        int effective = Math.max(1, damage - type.getBaseDefense() / 2);
         currentHp = Math.max(0, currentHp - effective);
     }
 
