@@ -9,7 +9,6 @@ import java.util.List;
 
 /**
  * FXML controller for the hero status side panel.
- * Handles only display updates; all game logic is in {@link GameController}.
  * Scene structure is defined in HeroStatus.fxml.
  */
 public class HeroStatusViewController implements ViewRefreshable {
@@ -33,9 +32,6 @@ public class HeroStatusViewController implements ViewRefreshable {
 
     private GameController gameController;
 
-    /**
-     * Injects the game controller. Must be called right after FXMLLoader.load().
-     */
     public void setup(GameController gameController) {
         this.gameController = gameController;
     }
@@ -75,9 +71,9 @@ public class HeroStatusViewController implements ViewRefreshable {
 
     private String getHeroEmoji(HeroClass hc) {
         return switch (hc) {
-            case WARRIOR -> "W";
-            case MAGE    -> "M";
-            case ARCHER  -> "A";
+            case WARRIOR -> "⚔";
+            case MAGE    -> "🔮";
+            case ARCHER  -> "🏹";
         };
     }
 

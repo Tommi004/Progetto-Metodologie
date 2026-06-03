@@ -81,7 +81,7 @@ public class ViewGameDialogFactory {
         title.setEffect(glow("#ffd700", 20));
 
         Label msg = bodyLabel("You conquered Dungeon Protocol!");
-        Label sub = subLabel("The Dragon is slain. The dungeon is yours!", "#a0a060");
+        Label sub = subLabel("The demon king has fallen. The dungeon is yours!", "#a0a060");
 
         Button okBtn = confirmButton("RETURN TO MENU", "#8a6a00", "#ffd700");
         okBtn.setOnAction(e -> { dialog.close(); onReturnToMenu.run(); });
