@@ -12,7 +12,8 @@ public class CombatManager implements CombatController {
     private final Random random = new Random();
 
     @Override
-    public CombatResult executeTurn(Hero hero, Enemy enemy, CombatAction action) {
+    public CombatResult executeTurn(Hero hero, Enemy enemy, CombatAction action,
+                                    String selectedPotionId) {
         int heroDmg = 0;
         int enemyDmg = 0;
         boolean fled = false;
@@ -41,9 +42,9 @@ public class CombatManager implements CombatController {
                 }
             }
             case USE_POTION -> {
-                boolean used = usePotion(hero);
-                msg.append(used ? hero.getName() + " drinks a potion and recovers HP. "
-                               : "No health potions in inventory! ");
+                boolean used = usePotion(hero, selectedPotionId);
+                msg.append(used ? hero.getName() + " uses a potion! "
+                               : "No potions in inventory! ");
             }
             case FLEE -> {
                 if (random.nextDouble() < FLEE_SUCCESS_RATE) {
@@ -90,96 +91,132 @@ public class CombatManager implements CombatController {
 
     private int calcEnemyAttack(Hero hero, Enemy enemy, StringBuilder msg) {
         int dmg;
+        int hpBefore;
         switch (enemy.getType()) {
             case GOBLIN -> {
-                int hit1 = Math.max(1, enemy.getAttack() - hero.getDefense() / 2);
-                int hit2 = Math.max(1, enemy.getAttack() - hero.getDefense() / 2);
-                hero.takeDamage(hit1);
-                hero.takeDamage(hit2);
-                dmg = hit1 + hit2;
-                msg.append(enemy.getName()).append(" attacks twice for ")
-                   .append(hit1).append("+").append(hit2).append(" dmg. ");
+                hpBefore = hero.getCurrentHp();
+                hero.takeDamage(enemy.getAttack());
+                hero.takeDamage(enemy.getAttack());
+                dmg = hpBefore - hero.getCurrentHp();
+                int rawG = enemy.getAttack() * 2;
+                msg.append(enemy.getName()).append(" attacks twice for ").append(rawG).append(" dmg");
+                appendResistance(msg, rawG, dmg);
             }
             case DARK_MAGE, WITCH -> {
-                int spellDmg = Math.max(1, enemy.getMagic() - hero.getDefense() / 3);
-                hero.takeDamage(spellDmg);
-                dmg = spellDmg;
-                msg.append(enemy.getName())
-                   .append(" casts a spell for ").append(spellDmg).append(" dmg. ");
+                hpBefore = hero.getCurrentHp();
+                hero.takeDamage(enemy.getMagic());
+                dmg = hpBefore - hero.getCurrentHp();
+                msg.append(enemy.getName()).append(" casts a spell for ").append(enemy.getMagic()).append(" dmg");
+                appendResistance(msg, enemy.getMagic(), dmg);
             }
             case ASSASSIN -> {
-                int hit1 = Math.max(1, enemy.getAttack() - hero.getDefense() / 3);
-                int hit2 = Math.max(1, enemy.getAttack() - hero.getDefense() / 3);
-                hero.takeDamage(hit1);
-                hero.takeDamage(hit2);
-                dmg = hit1 + hit2;
-                msg.append(enemy.getName()).append(" strikes twice for ")
-                   .append(hit1).append("+").append(hit2).append(" dmg! ");
+                hpBefore = hero.getCurrentHp();
+                hero.takeDamage(enemy.getAttack());
+                hero.takeDamage(enemy.getAttack());
+                dmg = hpBefore - hero.getCurrentHp();
+                int rawA = enemy.getAttack() * 2;
+                msg.append(enemy.getName()).append(" strikes twice for ").append(rawA).append(" dmg");
+                appendResistance(msg, rawA, dmg);
             }
             case KNIGHT -> {
-                // Tank: heavy single hit, ignores more defense
-                dmg = Math.max(1, enemy.getAttack() - hero.getDefense() / 4);
-                hero.takeDamage(dmg);
-                msg.append(enemy.getName()).append(" slams for ").append(dmg).append(" dmg! ");
+                hpBefore = hero.getCurrentHp();
+                int rawK = (int)(enemy.getAttack() * 1.25);
+                hero.takeDamage(rawK);
+                dmg = hpBefore - hero.getCurrentHp();
+                msg.append(enemy.getName()).append(" slams for ").append(rawK).append(" dmg");
+                appendResistance(msg, rawK, dmg);
             }
             case DEMON -> {
-                // Hybrid: physical + magic combo
-                int physDmg  = Math.max(1, enemy.getAttack() - hero.getDefense() / 2);
-                int magicDmg = Math.max(1, enemy.getMagic()  - hero.getDefense() / 3);
-                hero.takeDamage(physDmg);
-                hero.takeDamage(magicDmg);
-                dmg = physDmg + magicDmg;
-                msg.append(enemy.getName()).append(" strikes with dark power for ")
-                   .append(physDmg).append("+").append(magicDmg).append(" dmg! ");
+                hpBefore = hero.getCurrentHp();
+                hero.takeDamage(enemy.getAttack());
+                hero.takeDamage(enemy.getMagic());
+                dmg = hpBefore - hero.getCurrentHp();
+                int rawD = enemy.getAttack() + enemy.getMagic();
+                msg.append(enemy.getName()).append(" strikes with dark power for ").append(rawD).append(" dmg");
+                appendResistance(msg, rawD, dmg);
             }
             case LEVIATHAN -> {
-                // Massive single hit + ignores defense entirely
-                dmg = Math.max(1, enemy.getAttack() - hero.getDefense() / 4);
-                hero.takeDamage(dmg);
-                msg.append("The ").append(enemy.getName())
-                   .append(" crushes you for ").append(dmg).append(" dmg! ");
+                hpBefore = hero.getCurrentHp();
+                int rawL = (int)(enemy.getAttack() * 1.3);
+                hero.takeDamage(rawL);
+                dmg = hpBefore - hero.getCurrentHp();
+                msg.append("The ").append(enemy.getName()).append(" crushes you for ").append(rawL).append(" dmg");
+                appendResistance(msg, rawL, dmg);
             }
             case DEMON_LORD -> {
-                // Dual hit: physical + devastating magic
-                int physDmg  = Math.max(1, enemy.getAttack() - hero.getDefense() / 3);
-                int magicDmg = Math.max(1, enemy.getMagic()  - hero.getDefense() / 4);
-                hero.takeDamage(physDmg);
-                hero.takeDamage(magicDmg);
-                dmg = physDmg + magicDmg;
-                msg.append(enemy.getName()).append(" unleashes infernal wrath for ")
-                   .append(physDmg).append("+").append(magicDmg).append(" dmg! ");
+                hpBefore = hero.getCurrentHp();
+                hero.takeDamage(enemy.getAttack());
+                hero.takeDamage(enemy.getMagic());
+                dmg = hpBefore - hero.getCurrentHp();
+                int rawDL = enemy.getAttack() + enemy.getMagic();
+                msg.append(enemy.getName()).append(" unleashes infernal wrath for ").append(rawDL).append(" dmg");
+                appendResistance(msg, rawDL, dmg);
             }
             case DEMON_SOUL -> {
-                // Relentless: 3 magic hits, ignores all defense
-                int hit1 = Math.max(1, enemy.getMagic() - hero.getDefense() / 5);
-                int hit2 = Math.max(1, enemy.getMagic() - hero.getDefense() / 5);
-                int hit3 = Math.max(1, enemy.getAttack() - hero.getDefense() / 4);
-                hero.takeDamage(hit1);
-                hero.takeDamage(hit2);
-                hero.takeDamage(hit3);
-                dmg = hit1 + hit2 + hit3;
-                msg.append("DEMON SOUL unleashes chaos for ")
-                   .append(hit1).append("+").append(hit2).append("+").append(hit3)
-                   .append(" dmg!!! ");
+                hpBefore = hero.getCurrentHp();
+                hero.takeDamage(enemy.getMagic());
+                hero.takeDamage(enemy.getMagic());
+                hero.takeDamage(enemy.getAttack());
+                dmg = hpBefore - hero.getCurrentHp();
+                int rawDS = enemy.getMagic() * 2 + enemy.getAttack();
+                msg.append("DEMON SOUL unleashes chaos for ").append(rawDS).append(" dmg");
+                appendResistance(msg, rawDS, dmg);
             }
             default -> {
-                dmg = Math.max(1, enemy.getAttack() - hero.getDefense() / 2);
-                hero.takeDamage(dmg);
-                msg.append(enemy.getName()).append(" attacks for ").append(dmg).append(" dmg. ");
+                hpBefore = hero.getCurrentHp();
+                hero.takeDamage(enemy.getAttack());
+                dmg = hpBefore - hero.getCurrentHp();
+                msg.append(enemy.getName()).append(" attacks for ").append(enemy.getAttack()).append(" dmg");
+                appendResistance(msg, enemy.getAttack(), dmg);
             }
         }
+        msg.append(" ");
         return dmg;
     }
 
-    private boolean usePotion(Hero hero) {
+    /**
+     * Appends resistance note if effective damage is less than raw damage.
+     */
+    private void appendResistance(StringBuilder msg, int raw, int effective) {
+        if (effective < raw) {
+            msg.append(" → ").append(effective).append(" (resistance reduced damage)");
+        } else {
+            msg.append(".");
+        }
+    }
+
+    private boolean usePotion(Hero hero, String selectedId) {
+        // Try the specifically selected potion first
+        if (selectedId != null) {
+            return hero.getInventory().stream()
+                    .filter(i -> i.getId().equals(selectedId))
+                    .findFirst()
+                    .map(item -> {
+                        applyPotionEffect(hero, item);
+                        hero.removeItem(item.getId());
+                        return true;
+                    })
+                    .orElse(false);
+        }
+        // Fallback: use first available potion
         return hero.getInventory().stream()
-                .filter(i -> i.getType() == ItemType.HEALTH_POTION)
+                .filter(i -> i.getType() == ItemType.HEALTH_POTION
+                          || i.getType() == ItemType.MANA_POTION
+                          || i.getType() == ItemType.STRENGTH_POTION)
                 .findFirst()
                 .map(item -> {
-                    hero.heal(item.getValue());
+                    applyPotionEffect(hero, item);
                     hero.removeItem(item.getId());
                     return true;
                 })
                 .orElse(false);
+    }
+
+    private void applyPotionEffect(Hero hero, Item item) {
+        switch (item.getType()) {
+            case HEALTH_POTION   -> hero.heal(item.getValue());
+            case MANA_POTION     -> hero.restoreMana(item.getValue());
+            case STRENGTH_POTION -> hero.boostAttack(item.getValue()); // temp: reversed at combat end
+        }
     }
 }

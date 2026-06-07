@@ -26,6 +26,20 @@ public class GameController {
 
     public PersistenceManager getPersistenceManager() { return persistenceManager; }
 
+    private String selectedPotionId = null;
+
+    /** Called by the view before USE_POTION to specify which potion to use. */
+    public void selectPotion(String itemId) {
+        this.selectedPotionId = itemId;
+    }
+
+    /** Returns and clears the selected potion id. */
+    public String consumeSelectedPotionId() {
+        String id = selectedPotionId;
+        selectedPotionId = null;
+        return id;
+    }
+
     public void startNewGame(String heroName, HeroClass heroClass) {
         dungeonController.resetUniqueItems();
         Hero hero = heroController.createHero(heroName, heroClass);
@@ -41,8 +55,20 @@ public class GameController {
 
     public boolean loadGame() {
         Optional<GameState> loaded = persistenceManager.loadGame();
-        loaded.ifPresent(state -> currentState = state);
-        return loaded.isPresent();
+        if (loaded.isEmpty()) return false;
+        currentState = loaded.get();
+
+        // Re-register all existing items so the unique-item tracker is in sync
+        dungeonController.resetUniqueItems();
+        currentState.getHero().getInventory()
+                .forEach(dungeonController::registerExistingItem);
+        Dungeon d = currentState.getDungeon();
+        for (int r = 0; r < d.getRows(); r++)
+            for (int c = 0; c < d.getCols(); c++)
+                d.getRoom(r, c).getItems()
+                        .forEach(dungeonController::registerExistingItem);
+
+        return true;
     }
 
     public GameState getCurrentState() { return currentState; }
@@ -65,7 +91,7 @@ public class GameController {
 
     public CombatResult executeCombatTurn(Enemy enemy, CombatAction action) {
         CombatResult result = combatController.executeTurn(
-                currentState.getHero(), enemy, action);
+                currentState.getHero(), enemy, action, consumeSelectedPotionId());
         if (result.heroDefeated()) {
             currentState.setGameOver();
         }
@@ -96,11 +122,27 @@ public class GameController {
     public void collectRoomItems() {
         Room room = getCurrentRoom();
         List<Item> items = room.getItems();
+        Hero hero = currentState.getHero();
         for (Item item : items) {
-            heroController.pickUpItem(currentState.getHero(), item);
+            // If a unique item of the same type exists in inventory, remove it first
+            // (upgrade logic: higher rarity replaces lower rarity)
+            if (isUniqueItemType(item.getType())) {
+                hero.getInventory().stream()
+                        .filter(i -> i.getType() == item.getType())
+                        .findFirst()
+                        .ifPresent(old -> hero.removeItem(old.getId()));
+            }
+            heroController.pickUpItem(hero, item);
             room.removeItem(item.getId());
         }
         if (!items.isEmpty()) room.markCleared();
+    }
+
+    private boolean isUniqueItemType(ItemType type) {
+        return switch (type) {
+            case SWORD, BOW, STAFF, ARMOR, AMULET, STRENGTH_POTION -> true;
+            default -> false;
+        };
     }
 
     public boolean useItem(String itemId) {

@@ -13,4 +13,7 @@ public interface DungeonController {
 
     /** Resets the unique-item tracker. Call only when starting a brand new run. */
     void resetUniqueItems();
+
+    /** Registers an item loaded from save so it counts toward the unique-item tracker. */
+    void registerExistingItem(Item item);
 }

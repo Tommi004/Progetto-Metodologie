@@ -7,5 +7,6 @@ import it.unicam.cs.mpgc.rpg126224.model.*;
  */
 public interface CombatController {
 
-    CombatResult executeTurn(Hero hero, Enemy enemy, CombatAction action);
+    CombatResult executeTurn(Hero hero, Enemy enemy, CombatAction action,
+                             String selectedPotionId);
 }

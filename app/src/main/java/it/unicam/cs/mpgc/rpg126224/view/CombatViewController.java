@@ -3,6 +3,7 @@ package it.unicam.cs.mpgc.rpg126224.view;
 import it.unicam.cs.mpgc.rpg126224.controller.GameController;
 import it.unicam.cs.mpgc.rpg126224.model.*;
 import javafx.animation.*;
+import java.util.List;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
@@ -53,6 +54,7 @@ public class CombatViewController {
     private Enemy          enemy;
     private Stage          stage;
     private Runnable       onCombatEnd;
+    private int            originalAttack = -1; // saved for STRENGTH_POTION temp boost
 
     private Timeline heroHpTimeline  = new Timeline();
     private Timeline enemyHpTimeline = new Timeline();
@@ -63,6 +65,7 @@ public class CombatViewController {
         this.enemy          = enemy;
         this.stage          = stage;
         this.onCombatEnd    = onCombatEnd;
+        this.originalAttack = gameController.getHero().getAttack();
         populateInitialState();
         startAnimations();
     }
@@ -129,10 +132,107 @@ public class CombatViewController {
     // Button handlers
     // -------------------------------------------------------------------------
 
-    @FXML private void handleAttack()  { processTurn(CombatAction.ATTACK);     }
-    @FXML private void handleSpecial() { processTurn(CombatAction.SPECIAL);    }
-    @FXML private void handlePotion()  { processTurn(CombatAction.USE_POTION); }
-    @FXML private void handleFlee()    { processTurn(CombatAction.FLEE);       }
+    @FXML private void handleAttack()  { processTurn(CombatAction.ATTACK);  }
+    @FXML private void handleSpecial() { processTurn(CombatAction.SPECIAL); }
+    @FXML private void handleFlee()    { processTurn(CombatAction.FLEE);    }
+
+    @FXML private void handlePotion() {
+        Hero hero = gameController.getHero();
+        List<Item> potions = hero.getInventory().stream()
+                .filter(i -> i.getType() == ItemType.HEALTH_POTION
+                          || i.getType() == ItemType.MANA_POTION
+                          || i.getType() == ItemType.STRENGTH_POTION)
+                .toList();
+
+        if (potions.isEmpty()) {
+            appendLog("✘ No potions in inventory!");
+            return;
+        }
+
+        if (potions.size() == 1) {
+            // Only one potion — use it directly
+            gameController.selectPotion(potions.get(0).getId());
+            processTurn(CombatAction.USE_POTION);
+            return;
+        }
+
+        // Multiple potions — show selection popup
+        showPotionSelector(potions);
+    }
+
+    /**
+     * Shows an inline popup over the combat screen listing available potions.
+     * The player taps one to select it, then the turn is processed.
+     */
+    private void showPotionSelector(List<Item> potions) {
+        actionBar.setDisable(true);
+
+        javafx.scene.layout.VBox popup = new javafx.scene.layout.VBox(8);
+        popup.setAlignment(javafx.geometry.Pos.CENTER);
+        popup.setMaxWidth(220);
+        popup.setMaxHeight(240);
+        popup.setStyle(
+                "-fx-background-color: rgba(0,0,0,0.90); " +
+                "-fx-border-color: #44aaff; -fx-border-width: 1.5; " +
+                "-fx-border-radius: 8; -fx-background-radius: 8; " +
+                "-fx-padding: 14 16 14 16;"
+        );
+
+        javafx.scene.control.Label title = new javafx.scene.control.Label("Use which potion?");
+        title.setFont(Font.font("Monospace", FontWeight.BOLD, 13));
+        title.setTextFill(Color.web("#44aaff"));
+        popup.getChildren().add(title);
+
+        for (Item potion : potions) {
+            String emoji = switch (potion.getType()) {
+                case HEALTH_POTION   -> "🧪";
+                case MANA_POTION     -> "💧";
+                case STRENGTH_POTION -> "💪";
+                default              -> "⚗";
+            };
+            String suffix = potion.getType() == ItemType.STRENGTH_POTION
+                    ? "  (temp +ATK)" : "  (+" + potion.getValue() + ")";
+            String label = emoji + "  " + potion.getName() + suffix;
+
+            javafx.scene.control.Button btn = new javafx.scene.control.Button(label);
+            btn.setMaxWidth(Double.MAX_VALUE);
+            btn.setStyle(
+                    "-fx-background-color: #001428; -fx-text-fill: #aaddff; " +
+                    "-fx-font-family: Monospace; -fx-font-size: 11; " +
+                    "-fx-border-color: #224466; -fx-border-radius: 4; " +
+                    "-fx-background-radius: 4; -fx-padding: 6 10 6 10; " +
+                    "-fx-cursor: hand;"
+            );
+            btn.setOnAction(e -> {
+                heroPanelBox.getChildren().remove(popup);
+                gameController.selectPotion(potion.getId());
+                processTurn(CombatAction.USE_POTION);
+            });
+            popup.getChildren().add(btn);
+        }
+
+        // Cancel button
+        javafx.scene.control.Button cancel = new javafx.scene.control.Button("✕  Cancel");
+        cancel.setStyle(
+                "-fx-background-color: #1a0000; -fx-text-fill: #ff6666; " +
+                "-fx-font-family: Monospace; -fx-font-size: 11; " +
+                "-fx-border-color: #441111; -fx-border-radius: 4; " +
+                "-fx-background-radius: 4; -fx-padding: 6 10 6 10; " +
+                "-fx-cursor: hand;"
+        );
+        cancel.setOnAction(e -> {
+            heroPanelBox.getChildren().remove(popup);
+            actionBar.setDisable(false);
+        });
+        popup.getChildren().add(cancel);
+
+        // Fade in
+        popup.setOpacity(0);
+        heroPanelBox.getChildren().add(popup);
+        FadeTransition ft = new FadeTransition(Duration.millis(200), popup);
+        ft.setToValue(1.0);
+        ft.play();
+    }
 
     // -------------------------------------------------------------------------
     // Core turn logic
@@ -362,6 +462,14 @@ public class CombatViewController {
 
     private void endCombat(CombatResult result) {
         actionBar.setDisable(true);
+
+        // Restore ATK if a Strength Potion was used (temp boost only)
+        Hero hero = gameController.getHero();
+        if (originalAttack >= 0 && hero.getAttack() != originalAttack) {
+            hero.boostAttack(originalAttack - hero.getAttack());
+            appendLog("⚗ Strength boost fades away.");
+        }
+
         PauseTransition endDelay = new PauseTransition(Duration.millis(700));
         endDelay.setOnFinished(ev -> {
             if (result.enemyDefeated()) {
@@ -419,7 +527,7 @@ public class CombatViewController {
         line1.setFont(Font.font("Monospace", FontWeight.BOLD, 34));
         line1.setFill(Color.web("#ff2200"));
 
-        javafx.scene.text.Text line2 = new javafx.scene.text.Text("returns from beyond");
+        javafx.scene.text.Text line2 = new javafx.scene.text.Text("AWAKENS");
         line2.setFont(Font.font("Monospace", FontWeight.BOLD, 22));
         line2.setFill(Color.web("#ff6600"));
 

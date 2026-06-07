@@ -27,7 +27,7 @@ class CombatTest {
     @Test
     @DisplayName("ATTACK action deals positive damage to enemy")
     void attackDealsDamage() {
-        CombatResult result = manager.executeTurn(hero, goblin, CombatAction.ATTACK);
+        CombatResult result = manager.executeTurn(hero, goblin, CombatAction.ATTACK, null);
         assertTrue(result.heroDamageDealt() > 0);
         assertTrue(result.message().contains("attacks"));
     }
@@ -39,7 +39,7 @@ class CombatTest {
         CombatResult result = null;
         for (int i = 0; i < 50; i++) {
             if (!goblin.isAlive()) break;
-            result = manager.executeTurn(hero, goblin, CombatAction.ATTACK);
+            result = manager.executeTurn(hero, goblin, CombatAction.ATTACK, null);
         }
         assertNotNull(result);
         // At some point the goblin must be defeated
@@ -49,7 +49,7 @@ class CombatTest {
     @Test
     @DisplayName("USE_POTION with no potions returns message")
     void potionWithNoInventory() {
-        CombatResult result = manager.executeTurn(hero, goblin, CombatAction.USE_POTION);
+        CombatResult result = manager.executeTurn(hero, goblin, CombatAction.USE_POTION, null);
         assertTrue(result.message().toLowerCase().contains("no") ||
                 result.message().toLowerCase().contains("potion"));
     }
@@ -57,7 +57,7 @@ class CombatTest {
     @Test
     @DisplayName("SPECIAL action returns valid result")
     void specialActionReturnsResult() {
-        CombatResult result = manager.executeTurn(hero, goblin, CombatAction.SPECIAL);
+        CombatResult result = manager.executeTurn(hero, goblin, CombatAction.SPECIAL, null);
         assertNotNull(result);
         assertTrue(result.heroDamageDealt() >= 0);
     }

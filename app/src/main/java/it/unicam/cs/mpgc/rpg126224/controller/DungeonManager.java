@@ -34,6 +34,16 @@ public class DungeonManager implements DungeonController {
     }
 
     @Override
+    public void registerExistingItem(Item item) {
+        if (UNIQUE_ITEMS.contains(item.getType())) {
+            Rarity existing = foundUniqueItems.get(item.getType());
+            if (existing == null || item.getRarity().isHigherThan(existing)) {
+                foundUniqueItems.put(item.getType(), item.getRarity());
+            }
+        }
+    }
+
+    @Override
     public Dungeon generateDungeon(int level) {
         // NOTE: foundUniqueItems is NOT cleared here.
         // Call resetUniqueItems() explicitly when starting a brand new run.
@@ -143,7 +153,6 @@ public class DungeonManager implements DungeonController {
         if (UNIQUE_ITEMS.contains(type)) {
             Rarity existing = foundUniqueItems.get(type);
             if (existing != null && !rarity.isHigherThan(existing)) {
-                // Already found at same or higher rarity — give a consumable instead
                 type = random.nextBoolean() ? ItemType.HEALTH_POTION : ItemType.MANA_POTION;
                 rarity = Rarity.COMMON;
             } else {
