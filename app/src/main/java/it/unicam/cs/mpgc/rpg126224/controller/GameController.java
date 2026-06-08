@@ -17,6 +17,7 @@ public class GameController {
     private final HeroController     heroController;
     private final DungeonController  dungeonController;
     private final CombatController   combatController;
+    private final ShopController     shopController;
     private final PersistenceManager persistenceManager;
 
     private GameState currentState;
@@ -35,6 +36,7 @@ public class GameController {
         this.heroController    = new HeroManager();
         this.dungeonController = new DungeonManager();
         this.combatController  = new CombatManager();
+        this.shopController    = new ShopManager(heroController);
     }
 
     public PersistenceManager getPersistenceManager() { return persistenceManager; }
@@ -148,6 +150,10 @@ public class GameController {
 
     public void resolveEnemyDefeat(String enemyId) {
         Room room = getCurrentRoom();
+        room.getEnemies().stream()
+                .filter(e -> e.getId().equals(enemyId))
+                .findFirst()
+                .ifPresent(e -> currentState.getHero().addGold(e.getType().getGoldReward()));
         boolean removed = room.removeEnemy(enemyId);
         if (removed) {
             statEnemiesDefeated++;
@@ -156,6 +162,13 @@ public class GameController {
             room.markCleared();
         }
     }
+
+    /**
+     * Attempts to purchase a shop item for the hero.
+     *
+     * @param shopItem the shop entry to buy
+     * @return {@code true} if the hero had enough gold and the item was added
+     */
 
     /**
      * Replaces the defeated Demon Lord with a Demon Soul in the current room.
@@ -291,9 +304,24 @@ public class GameController {
         currentState.advanceLevel(newDungeon);
     }
 
-    // ------------------------------------------------------------------
-    // Run statistics
-    // ------------------------------------------------------------------
+    /**
+     * Generates the shop catalogue for the current dungeon floor.
+     *
+     * @return list of items available for purchase
+     */
+    public java.util.List<it.unicam.cs.mpgc.rpg126224.model.ShopItem> getShopCatalogue() {
+        return shopController.generateCatalogue(currentState.getDungeonLevel());
+    }
+
+    /**
+     * Attempts to purchase a shop item for the hero.
+     *
+     * @param shopItem the shop entry to buy
+     * @return {@code true} if the hero had enough gold and the item was added
+     */
+    public boolean buyShopItem(it.unicam.cs.mpgc.rpg126224.model.ShopItem shopItem) {
+        return shopController.buyItem(currentState.getHero(), shopItem);
+    }
 
     /**
      * Builds an immutable {@link RunStats} snapshot of the current run.

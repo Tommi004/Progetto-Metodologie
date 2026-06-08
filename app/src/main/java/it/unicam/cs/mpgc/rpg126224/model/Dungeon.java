@@ -1,5 +1,6 @@
 package it.unicam.cs.mpgc.rpg126224.model;
 
+import it.unicam.cs.mpgc.rpg126224.exception.InvalidDungeonPositionException;
 import java.util.Objects;
 
 /**
@@ -47,8 +48,7 @@ public class Dungeon {
 
     private void validateCoordinates(int row, int col) {
         if (!isValidPosition(row, col)) {
-            throw new IndexOutOfBoundsException(
-                    "Invalid dungeon position: [" + row + "," + col + "]");
+            throw new InvalidDungeonPositionException(row, col);
         }
     }
 

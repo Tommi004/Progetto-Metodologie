@@ -42,6 +42,7 @@ public class CombatViewController {
     @FXML private Label       enemyHpLabel;
     @FXML private ProgressBar enemyHpBar;
     @FXML private Label       enemyTypeLabel;
+    @FXML private Label       enemyStatsLabel;
 
     @FXML private TextArea    logArea;
     @FXML private HBox        actionBar;
@@ -89,6 +90,7 @@ public class CombatViewController {
         enemyHpLabel.setText("HP: " + enemy.getCurrentHp() + "/" + enemy.getMaxHp());
         enemyHpBar.setProgress((double) enemy.getCurrentHp() / enemy.getMaxHp());
         enemyTypeLabel.setText(enemy.getType().name());
+        enemyStatsLabel.setText(buildEnemyStatsText(enemy));
 
         appendLog("══════════════════════════════");
         appendLog("⚔  COMBAT vs " + enemy.getName().toUpperCase() + "  ⚔");
@@ -484,7 +486,8 @@ public class CombatViewController {
                     return;
                 }
                 gameController.resolveEnemyDefeat(enemy.getId());
-                appendLog("★ Victory! Room cleared.");
+                int gold = enemy.getType().getGoldReward();
+                appendLog("★ Victory! +" + gold + " 🪙  Room cleared.");
             }
             stage.close();
             onCombatEnd.run();
@@ -591,6 +594,7 @@ public class CombatViewController {
         enemyNameLabel.setText(enemy.getName());
         enemyHpLabel.setText("HP: " + enemy.getCurrentHp() + "/" + enemy.getMaxHp());
         enemyTypeLabel.setText("DEMON SOUL — PHASE 2");
+        enemyStatsLabel.setText(buildEnemyStatsText(enemy));
 
         enemyHpTimeline.stop();
         enemyHpBar.setProgress(1.0);
@@ -703,6 +707,43 @@ public class CombatViewController {
     }
 
     private void appendLog(String text) { logArea.appendText(text + "\n"); }
+
+    /**
+     * Builds the stats summary string shown below the enemy type label.
+     *
+     * <p>Always shows ATK and DEF. When the enemy has magic power, MAG is
+     * shown too. A short badge is appended to signal special behaviours:</p>
+     * <ul>
+     *   <li>{@code ✦ MAGIC} — enemy attacks purely with magic (Dark Mage, Witch,
+     *       Demon Soul), warning the player that physical defense helps less</li>
+     *   <li>{@code ⚔+✦ MIXED} — enemy combines physical and magic damage
+     *       (Demon, Demon Lord)</li>
+     *   <li>{@code ⚔×2} — enemy strikes twice per turn (Goblin, Assassin)</li>
+     *   <li>{@code 🛡 ARMORED} — enemy ignores part of the hero's defense
+     *       (Knight, Leviathan)</li>
+     * </ul>
+     */
+    private String buildEnemyStatsText(Enemy enemy) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("ATK ").append(enemy.getAttack())
+          .append("  DEF ").append(enemy.getDefense());
+
+        if (enemy.getMagic() > 0) {
+            sb.append("  MAG ").append(enemy.getMagic());
+        }
+
+        String badge = switch (enemy.getType()) {
+            case DARK_MAGE, WITCH             -> "  ✦ MAGIC";
+            case DEMON_SOUL                   -> "  ✦✦ MAGIC";
+            case DEMON, DEMON_LORD, DRAGON,
+                 ASSASSIN                     -> "  ⚔+✦ MIXED";
+            case GOBLIN                       -> "  ⚔x2";
+            case KNIGHT, LEVIATHAN            -> "  🛡 ARMORED";
+            default                           -> "";
+        };
+        sb.append(badge);
+        return sb.toString();
+    }
 
     private String getEnemyEmoji(EnemyType type) {
         return switch (type) {

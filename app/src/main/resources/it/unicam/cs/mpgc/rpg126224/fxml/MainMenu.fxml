@@ -41,17 +41,18 @@
                            -fx-font-family: Monospace; -fx-font-size: 15;
                            -fx-padding: 13 24; -fx-background-radius: 6; -fx-cursor: hand;"/>
 
+            <Button fx:id="creditsBtn" text="★   Credits"
+                    prefWidth="280" onAction="#handleCredits"
+                    style="-fx-background-color: #2a2a0e; -fx-text-fill: #ffd070;
+                           -fx-font-family: Monospace; -fx-font-size: 15;
+                           -fx-padding: 13 24; -fx-background-radius: 6; -fx-cursor: hand;"/>
+
             <Button fx:id="quitBtn" text="✖   Quit"
                     prefWidth="280" onAction="#handleQuit"
                     style="-fx-background-color: #1e1e2e; -fx-text-fill: #808090;
                            -fx-font-family: Monospace; -fx-font-size: 15;
                            -fx-padding: 13 24; -fx-background-radius: 6; -fx-cursor: hand;"/>
         </VBox>
-
-        <!-- Version -->
-        <Label text="Tommaso Leonardi - 126224"
-               style="-fx-font-family: Monospace; -fx-font-size: 10;
-                      -fx-text-fill: #ffd700;"/>
     </VBox>
 
 </StackPane>

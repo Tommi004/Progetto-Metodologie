@@ -66,7 +66,12 @@ public class GameViewController implements ViewRefreshable {
     // -------------------------------------------------------------------------
 
     @FXML private void handleSave()  { gameController.saveGame(); showMessage("✓ Game saved."); }
-    @FXML private void handleMenu()  { onReturnToMenu.run(); }
+    @FXML private void handleMenu()  {
+        ViewGameDialogFactory.showPauseMenu(
+                () -> { gameController.saveGame(); onReturnToMenu.run(); },
+                onReturnToMenu
+        );
+    }
     @FXML private void handleUp()    { handleMove(-1,  0); }
     @FXML private void handleDown()  { handleMove( 1,  0); }
     @FXML private void handleLeft()  { handleMove( 0, -1); }
@@ -91,7 +96,16 @@ public class GameViewController implements ViewRefreshable {
         Room room = gameController.getCurrentRoom();
         handleTrap(room);
         handleTreasure(room);
+        handleShop(room);
         handleCombat(room);
+    }
+
+    private void handleShop(Room room) {
+        if (room.getType() != RoomType.SHOP || room.isCleared()) return;
+        new ShopView(gameController, () -> {
+            room.markCleared();
+            refresh();
+        }).show();
     }
 
     private void handleTrap(Room room) {
@@ -178,6 +192,8 @@ public class GameViewController implements ViewRefreshable {
             info.append("  ⚠ ").append(room.getEnemies().size()).append(" enemy");
         if (!room.getItems().isEmpty())
             info.append("  💰 ").append(room.getItems().size()).append(" item(s)");
+        if (room.getType() == RoomType.SHOP && !room.isCleared())
+            info.append("  🛒 Shop");
         roomInfoLabel.setText(info.toString());
     }
 

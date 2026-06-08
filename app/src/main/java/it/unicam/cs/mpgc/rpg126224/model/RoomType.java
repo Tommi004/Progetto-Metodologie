@@ -8,6 +8,7 @@ public enum RoomType {
     ENEMY,
     TREASURE,
     TRAP,
+    SHOP,
     START,
     EXIT
 }

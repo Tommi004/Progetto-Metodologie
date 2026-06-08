@@ -31,6 +31,7 @@ public class JsonPersistenceManager implements PersistenceManager {
             sb.append("heroMaxMana=").append(hero.getMaxMana()).append("\n");
             sb.append("heroLevel=").append(hero.getLevel()).append("\n");
             sb.append("heroXp=").append(hero.getExperience()).append("\n");
+            sb.append("heroGold=").append(hero.getGold()).append("\n");
             sb.append("heroRow=").append(hero.getRow()).append("\n");
             sb.append("heroCol=").append(hero.getCol()).append("\n");
             sb.append("dungeonLevel=").append(state.getDungeonLevel()).append("\n");
@@ -45,6 +46,7 @@ public class JsonPersistenceManager implements PersistenceManager {
                 sb.append("inv_").append(i).append("_type=").append(item.getType().name()).append("\n");
                 sb.append("inv_").append(i).append("_value=").append(item.getValue()).append("\n");
                 sb.append("inv_").append(i).append("_rarity=").append(item.getRarity().name()).append("\n");
+                sb.append("inv_").append(i).append("_quantity=").append(item.getQuantity()).append("\n");
             }
             sb.append("dungeonRows=").append(dungeon.getRows()).append("\n");
             sb.append("dungeonCols=").append(dungeon.getCols()).append("\n");
@@ -137,12 +139,16 @@ public class JsonPersistenceManager implements PersistenceManager {
         hero.setCurrentMana(savedCurrentMana);
         hero.setLevel(getInt(d, "heroLevel"));
         hero.setExperience(getInt(d, "heroXp"));
+        hero.setGold(getInt(d, "heroGold"));
         int invSize = getInt(d, "inventorySize");
         for (int i = 0; i < invSize; i++) {
             String rarityStr = d.getOrDefault("inv_"+i+"_rarity", "COMMON");
             Rarity rarity = Rarity.valueOf(rarityStr);
-            hero.addItem(new Item(d.get("inv_"+i+"_id"), d.get("inv_"+i+"_name"),
-                    ItemType.valueOf(d.get("inv_"+i+"_type")), getInt(d, "inv_"+i+"_value"), rarity));
+            Item item = new Item(d.get("inv_"+i+"_id"), d.get("inv_"+i+"_name"),
+                    ItemType.valueOf(d.get("inv_"+i+"_type")), getInt(d, "inv_"+i+"_value"), rarity);
+            int qty = getInt(d, "inv_"+i+"_quantity");
+            if (qty > 1) item.setQuantity(qty);
+            hero.addItem(item);
         }
         int dRows = getInt(d, "dungeonRows");
         int dCols = getInt(d, "dungeonCols");

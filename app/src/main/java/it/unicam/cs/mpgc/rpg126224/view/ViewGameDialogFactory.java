@@ -40,6 +40,94 @@ public class ViewGameDialogFactory {
     // ------------------------------------------------------------------
 
     /**
+     * Shows a pause/menu dialog when the player clicks the Menu button.
+     *
+     * <p>Three options are presented:</p>
+     * <ul>
+     *   <li><b>Save &amp; Exit</b> — saves the game then returns to the main menu</li>
+     *   <li><b>Exit without saving</b> — returns to the main menu immediately</li>
+     *   <li><b>Cancel</b> — closes the dialog and resumes the game</li>
+     * </ul>
+     *
+     * @param onSaveAndExit     callback that saves and then returns to menu
+     * @param onExitWithoutSave callback that returns to menu without saving
+     */
+    public static void showPauseMenu(Runnable onSaveAndExit, Runnable onExitWithoutSave) {
+        Stage dialog = buildBaseDialog("Paused", 380, 320);
+
+        // ── Header ──────────────────────────────────────────────────────
+        Label title = titleLabel("— PAUSED —", "#9090e0");
+        title.setEffect(glow("#6060c0", 14));
+
+        Label question = new Label("What would you like to do?");
+        question.setFont(Font.font(FONT_MONO, 12));
+        question.setTextFill(Color.web("#8080a0"));
+
+        // ── Buttons ─────────────────────────────────────────────────────
+        Button saveExitBtn = wideButton("💾   Save & Exit",        "#0d2a40", "#60aaff", "#1a4a70");
+        Button exitBtn     = wideButton("↩   Exit without saving", "#2a0d0d", "#ff7070", "#4a1a1a");
+        Button cancelBtn   = wideButton("✖   Cancel",              "#141424", "#7070a0", "#1e1e38");
+
+        saveExitBtn.setOnAction(e -> { dialog.close(); onSaveAndExit.run(); });
+        exitBtn.setOnAction(e -> { dialog.close(); onExitWithoutSave.run(); });
+        cancelBtn.setOnAction(e -> dialog.close());
+
+        VBox btnBox = new VBox(10, saveExitBtn, exitBtn, cancelBtn);
+        btnBox.setAlignment(Pos.CENTER);
+
+        showWithFade(dialog, 380, 320, "#0d0d1f",
+                title, question, btnBox);
+    }
+
+    /**
+     * Shows a modal "Credits / About" dialog from the main menu.
+     *
+     * <p>Displays: game title, developer info, course details,
+     * academic year and the technology stack used.</p>
+     */
+    public static void showCredits() {
+        Stage dialog = buildBaseDialog("Credits", 400, 420);
+
+        Label title = titleLabel("LEVEL UP!", "#e94560");
+        title.setEffect(glow("#e94560", 18));
+
+        Label subtitle = new Label("A turn-based dungeon RPG");
+        subtitle.setFont(Font.font(FONT_MONO, 12));
+        subtitle.setTextFill(Color.web("#ffd700"));
+
+        Separator sep1 = new Separator();
+        sep1.setMaxWidth(300);
+        sep1.setStyle("-fx-background-color: #3a2a00;");
+
+        VBox infoBox = new VBox(8);
+        infoBox.setAlignment(Pos.CENTER_LEFT);
+        infoBox.setMaxWidth(320);
+        addCreditRow(infoBox, "Developer",  "Tommaso Leonardi",     "#e0e0ff");
+        addCreditRow(infoBox, "Matricola",  "126224",               "#e0e0ff");
+        addCreditRow(infoBox, "Course",     "Metodologie di Programmazione", "#c0c0e0");
+        addCreditRow(infoBox, "University", "UNICAM — Camerino",    "#c0c0e0");
+        addCreditRow(infoBox, "A.Y.",       "2025 / 2026",          "#c0c0e0");
+
+        Separator sep2 = new Separator();
+        sep2.setMaxWidth(300);
+        sep2.setStyle("-fx-background-color: #2a2a3a;");
+
+        Label techHeader = new Label("Built with");
+        techHeader.setFont(Font.font(FONT_MONO, FontWeight.BOLD, 11));
+        techHeader.setTextFill(Color.web("#ffd700"));
+
+        Label techLabel = new Label("Java 25  ·  JavaFX 24  ·  Gradle 8  ·  JUnit 5");
+        techLabel.setFont(Font.font(FONT_MONO, 11));
+        techLabel.setTextFill(Color.web("#ffd700"));
+
+        Button closeBtn = confirmButton("CLOSE", "#1e1e2e", "#a0a0c0");
+        closeBtn.setOnAction(e -> dialog.close());
+
+        showWithFade(dialog, 400, 420, "#0a0a14",
+                title, subtitle, sep1, infoBox, sep2, techHeader, techLabel, closeBtn);
+    }
+
+    /**
      * Shows a modal dialog when the hero triggers a trap.
      *
      * @param trap the trap that was triggered
@@ -245,6 +333,22 @@ public class ViewGameDialogFactory {
      * @param value     right-side value string
      * @param color     hex color for the value text
      */
+    private static void addCreditRow(VBox parent, String key, String value, String color) {
+        HBox row = new HBox();
+        row.setAlignment(Pos.CENTER_LEFT);
+
+        Label keyLbl = new Label(String.format("%-12s", key));
+        keyLbl.setFont(Font.font(FONT_MONO, 12));
+        keyLbl.setTextFill(Color.web("#505060"));
+
+        Label valLbl = new Label(value);
+        valLbl.setFont(Font.font(FONT_MONO, FontWeight.BOLD, 12));
+        valLbl.setTextFill(Color.web(color));
+
+        row.getChildren().addAll(keyLbl, valLbl);
+        parent.getChildren().add(row);
+    }
+
     private static void addStatRow(VBox parent,
                                    String labelText, String value, String color) {
         HBox row = new HBox();
@@ -306,6 +410,33 @@ public class ViewGameDialogFactory {
                 "-fx-padding: 8 30; " +
                 "-fx-background-radius: 4;"
         );
+        return btn;
+    }
+
+    /** Like confirmButton but fixed width and with a hover border effect. */
+    private static Button wideButton(String text, String bg, String textColor, String hoverBg) {
+        Button btn = new Button(text);
+        String base =
+                "-fx-background-color: " + bg + "; " +
+                "-fx-text-fill: " + textColor + "; " +
+                "-fx-font-family: " + FONT_MONO + "; " +
+                "-fx-font-size: 13; " +
+                "-fx-padding: 10 20; " +
+                "-fx-background-radius: 6; " +
+                "-fx-pref-width: 300; " +
+                "-fx-cursor: hand;";
+        String hover =
+                "-fx-background-color: " + hoverBg + "; " +
+                "-fx-text-fill: " + textColor + "; " +
+                "-fx-font-family: " + FONT_MONO + "; " +
+                "-fx-font-size: 13; " +
+                "-fx-padding: 10 20; " +
+                "-fx-background-radius: 6; " +
+                "-fx-pref-width: 300; " +
+                "-fx-cursor: hand;";
+        btn.setStyle(base);
+        btn.setOnMouseEntered(e -> btn.setStyle(hover));
+        btn.setOnMouseExited(e -> btn.setStyle(base));
         return btn;
     }
 

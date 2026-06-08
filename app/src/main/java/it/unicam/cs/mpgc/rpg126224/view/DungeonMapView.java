@@ -173,7 +173,9 @@ public class DungeonMapView implements ViewRefreshable {
             for (int c = 0; c < dungeon.getCols(); c++) {
                 Room room      = dungeon.getRoom(r, c);
                 boolean isHero = hero.getRow() == r && hero.getCol() == c;
-                drawCell(gc, room, r, c, isHero, hero, theme);
+                boolean isReachable = !isHero && dungeon.isValidPosition(r, c)
+                        && isAdjacentToHero(r, c, hero);
+                drawCell(gc, room, r, c, isHero, isReachable, hero, theme);
             }
         }
 
@@ -182,6 +184,13 @@ public class DungeonMapView implements ViewRefreshable {
 
         // Fog of war overlay
         drawFogOfWar(gc, hero);
+    }
+
+    /** Returns true if (r,c) is directly adjacent (4 directions) to the hero. */
+    private boolean isAdjacentToHero(int r, int c, Hero hero) {
+        int dr = Math.abs(r - hero.getRow());
+        int dc = Math.abs(c - hero.getCol());
+        return (dr == 1 && dc == 0) || (dr == 0 && dc == 1);
     }
 
     // -------------------------------------------------------------------------
@@ -286,12 +295,14 @@ public class DungeonMapView implements ViewRefreshable {
     // -------------------------------------------------------------------------
 
     private void drawCell(GraphicsContext gc, Room room, int r, int c,
-                          boolean isHero, Hero hero, CanvasTheme theme) {
+                          boolean isHero, boolean isReachable, Hero hero, CanvasTheme theme) {
         double x = PAD + c * STEP;
         double y = PAD + r * STEP;
 
         if (!room.isVisited()) {
             drawUnvisitedCell(gc, x, y, theme);
+            // Highlight unvisited reachable cells with a subtle white pulse
+            if (isReachable) drawReachableHighlight(gc, x, y, "#ffffff", 0.18);
             return;
         }
 
@@ -301,6 +312,48 @@ public class DungeonMapView implements ViewRefreshable {
         if (!isHero) {
             drawCellIcon(gc, room, x, y);
         }
+
+        // Highlight reachable visited cells
+        if (isReachable) {
+            String highlightColor = switch (room.getType()) {
+                case ENEMY    -> room.isCleared() ? "#44ff44" : "#ff4444";
+                case TREASURE -> room.isCleared() ? "#808040" : "#ffd700";
+                case EXIT     -> "#ffd700";
+                case TRAP     -> room.hasTrap()   ? "#ff8800" : "#44ff44";
+                default       -> "#4488ff";
+            };
+            drawReachableHighlight(gc, x, y, highlightColor, 0.55);
+        }
+    }
+
+    /**
+     * Draws a coloured highlight border around a reachable adjacent cell.
+     *
+     * @param gc      the graphics context
+     * @param x       cell top-left x
+     * @param y       cell top-left y
+     * @param color   hex color string for the highlight
+     * @param opacity opacity of the highlight (0.0–1.0)
+     */
+    private void drawReachableHighlight(GraphicsContext gc, double x, double y,
+                                        String color, double opacity) {
+        // Outer glow
+        gc.setStroke(Color.web(color, opacity * 0.4));
+        gc.setLineWidth(4);
+        strokeRoundRect(gc, x - 2, y - 2, CELL + 4, CELL + 4, 9);
+
+        // Inner border
+        gc.setStroke(Color.web(color, opacity));
+        gc.setLineWidth(1.5);
+        strokeRoundRect(gc, x, y, CELL, CELL, 6);
+
+        // Small corner dots for a "target" feel
+        double dotSize = 3;
+        gc.setFill(Color.web(color, opacity));
+        gc.fillOval(x + 2,          y + 2,          dotSize, dotSize);
+        gc.fillOval(x + CELL - 5,   y + 2,          dotSize, dotSize);
+        gc.fillOval(x + 2,          y + CELL - 5,   dotSize, dotSize);
+        gc.fillOval(x + CELL - 5,   y + CELL - 5,   dotSize, dotSize);
     }
 
     private void drawUnvisitedCell(GraphicsContext gc, double x, double y,
@@ -331,6 +384,9 @@ public class DungeonMapView implements ViewRefreshable {
         } else if (room.getType() == RoomType.ENEMY) {
             bgColor = room.isCleared() ? "#0d150d" : "#200808";
             strokeColor = room.isCleared() ? "#1a3a1a" : "#5a1515";
+        } else if (room.getType() == RoomType.SHOP) {
+            bgColor = room.isCleared() ? "#141408" : "#1a1a00";
+            strokeColor = room.isCleared() ? "#2a2810" : "#5a5000"; strokeWidth = 2;
         } else {
             bgColor = "#0e0e1e"; strokeColor = "#1c1c38";
         }
@@ -375,6 +431,10 @@ public class DungeonMapView implements ViewRefreshable {
             case TRAP -> {
                 if (!room.hasTrap()) { icon = "·"; color = "#2a2a50"; size = 12; }
                 else { icon = "·"; color = "#2a2a50"; size = 12; }
+            }
+            case SHOP -> {
+                if (room.isCleared()) { icon = "✓"; color = "#2a6a2a"; size = 16; }
+                else { icon = "🛒"; color = "#ffd700"; size = 20; }
             }
             case ENEMY -> {
                 if (room.isCleared()) { icon = "✓"; color = "#2a6a2a"; size = 16; }

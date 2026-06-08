@@ -1,6 +1,7 @@
 package it.unicam.cs.mpgc.rpg126224;
 
 import it.unicam.cs.mpgc.rpg126224.controller.DungeonManager;
+import it.unicam.cs.mpgc.rpg126224.exception.InvalidDungeonPositionException;
 import it.unicam.cs.mpgc.rpg126224.model.*;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -62,9 +63,12 @@ class DungeonTest {
     }
 
     @Test
-    @DisplayName("getRoom throws for invalid coordinates")
+    @DisplayName("getRoom throws InvalidDungeonPositionException for invalid coordinates")
     void getRoomThrowsOnInvalid() {
-        assertThrows(IndexOutOfBoundsException.class, () -> dungeon.getRoom(-1, 0));
+        assertThrows(InvalidDungeonPositionException.class,
+                () -> dungeon.getRoom(-1, 0));
+        assertThrows(InvalidDungeonPositionException.class,
+                () -> dungeon.getRoom(0, Dungeon.SIZE));
     }
 
     @Test

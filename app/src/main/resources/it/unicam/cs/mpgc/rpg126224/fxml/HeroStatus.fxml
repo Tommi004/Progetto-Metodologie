@@ -73,6 +73,9 @@
     <Label fx:id="floorLabel"
            style="-fx-font-family: Monospace; -fx-font-size: 11; -fx-font-weight: bold;
                   -fx-text-fill: #ffd700;"/>
+    <Label fx:id="goldLabel"
+           style="-fx-font-family: Monospace; -fx-font-size: 11; -fx-font-weight: bold;
+                  -fx-text-fill: #ffcc00;"/>
 
     <Separator/>
 

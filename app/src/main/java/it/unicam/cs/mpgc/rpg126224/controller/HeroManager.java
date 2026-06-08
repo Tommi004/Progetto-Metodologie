@@ -17,7 +17,14 @@ public class HeroManager implements HeroController {
                 .findFirst()
                 .map(item -> {
                     applyItemEffect(hero, item);
-                    hero.removeItem(itemId);
+                    if (item.isStackable()) {
+                        // Decrement stack; remove slot only when empty
+                        if (item.decrementQuantity()) {
+                            hero.removeItem(itemId);
+                        }
+                    } else {
+                        hero.removeItem(itemId);
+                    }
                     return true;
                 })
                 .orElse(false);

@@ -29,6 +29,7 @@ public class MainMenuViewController {
     @FXML private VBox   buttonBox;
     @FXML private Button newGameBtn;
     @FXML private Button loadGameBtn;
+    @FXML private Button creditsBtn;
     @FXML private Button quitBtn;
 
     private GameController gameController;
@@ -70,6 +71,9 @@ public class MainMenuViewController {
     private void handleLoadGame() {
         if (gameController.loadGame()) onLoadGame.run();
     }
+
+    @FXML
+    private void handleCredits() { ViewGameDialogFactory.showCredits(); }
 
     @FXML
     private void handleQuit() { onQuit.run(); }
@@ -147,9 +151,8 @@ public class MainMenuViewController {
     // -------------------------------------------------------------------------
 
     private void setupButtonAnimations() {
-        // Staggered fade-in + slide up for each button
-        Button[] btns = {newGameBtn, loadGameBtn, quitBtn};
-        buttonBox.setOpacity(1); // parent visible immediately
+        Button[] btns = {newGameBtn, loadGameBtn, creditsBtn, quitBtn};
+        buttonBox.setOpacity(1);
 
         for (int i = 0; i < btns.length; i++) {
             Button btn = btns[i];
@@ -175,6 +178,7 @@ public class MainMenuViewController {
     private void setupButtonHover() {
         addHover(newGameBtn,  "#8b1a2a", "#c0392b");
         addHover(loadGameBtn, "#0e3a52", "#1a5276");
+        addHover(creditsBtn,  "#2a2a0e", "#3a3a14");
         addHover(quitBtn,     "#1e1e2e", "#2a2a40");
     }
 

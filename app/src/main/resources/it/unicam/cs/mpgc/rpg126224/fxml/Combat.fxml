@@ -60,6 +60,9 @@
                     <Label fx:id="enemyTypeLabel"
                            style="-fx-font-family: Monospace; -fx-font-size: 10;
                                   -fx-text-fill: #804040;"/>
+                    <Label fx:id="enemyStatsLabel"
+                           style="-fx-font-family: Monospace; -fx-font-size: 10;
+                                  -fx-text-fill: #a06060;"/>
                 </VBox>
             </StackPane>
 

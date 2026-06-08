@@ -24,6 +24,7 @@ public class Hero implements GameEntity {
     private int experience;
     private int row;
     private int col;
+    private int gold;
 
     private final List<Item> inventory;
 
@@ -44,6 +45,7 @@ public class Hero implements GameEntity {
         this.experience = 0;
         this.row = 0;
         this.col = 0;
+        this.gold = 0;
         this.inventory = new ArrayList<>();
     }
 
@@ -62,9 +64,32 @@ public class Hero implements GameEntity {
     public HeroClass getHeroClass() { return heroClass; }
     public int getRow() { return row; }
     public int getCol() { return col; }
-    public List<Item> getInventory() { return List.copyOf(inventory); }
+    public int getGold() { return gold; }
 
     public void setPosition(int row, int col) { this.row = row; this.col = col; }
+    public void setGold(int gold) { this.gold = Math.max(0, gold); }
+
+    /**
+     * Adds the given amount to the hero's gold purse.
+     *
+     * @param amount gold to add; must be positive
+     */
+    public void addGold(int amount) { if (amount > 0) gold += amount; }
+
+    /**
+     * Spends the given amount of gold if the hero has enough.
+     *
+     * @param amount gold to spend
+     * @return {@code true} if the transaction succeeded; {@code false} if
+     *         the hero had insufficient gold
+     */
+    public boolean spendGold(int amount) {
+        if (gold < amount) return false;
+        gold -= amount;
+        return true;
+    }
+
+    public List<Item> getInventory() { return List.copyOf(inventory); }
     public void setCurrentHp(int hp) { this.currentHp = Math.max(0, Math.min(maxHp, hp)); }
     public void setMaxHp(int maxHp) { this.maxHp = maxHp; }
     public void setLevel(int level) { this.level = level; }
@@ -119,7 +144,29 @@ public class Hero implements GameEntity {
     @Override
     public void heal(int amount) { currentHp = Math.min(maxHp, currentHp + amount); }
 
-    public void addItem(Item item) { inventory.add(Objects.requireNonNull(item)); }
+    /**
+     * Adds an item to the inventory.
+     *
+     * <p>If the item is stackable (potion) and a stack of the same type
+     * already exists, the quantity of the existing stack is incremented
+     * instead of adding a new entry.</p>
+     *
+     * @param item the item to add; must not be null
+     */
+    public void addItem(Item item) {
+        Objects.requireNonNull(item);
+        if (item.isStackable()) {
+            inventory.stream()
+                    .filter(i -> i.getType() == item.getType())
+                    .findFirst()
+                    .ifPresentOrElse(
+                            Item::incrementQuantity,
+                            () -> inventory.add(item)
+                    );
+        } else {
+            inventory.add(item);
+        }
+    }
 
     public boolean removeItem(String itemId) {
         return inventory.removeIf(i -> i.getId().equals(itemId));

@@ -27,5 +27,24 @@ public enum ItemType {
     STRENGTH_POTION,
 
     /** Restores mana to the hero. */
-    MANA_POTION
+    MANA_POTION;
+
+    /**
+     * Returns a short human-readable description of the item's effect.
+     * Used in the inventory tooltip popup.
+     *
+     * @return effect description string
+     */
+    public String getEffectDescription() {
+        return switch (this) {
+            case HEALTH_POTION   -> "Restores HP when used in combat.";
+            case MANA_POTION     -> "Restores MP when used in combat.";
+            case SWORD           -> "Permanently increases ATK.";
+            case BOW             -> "Permanently increases ATK — optimised for Archers.";
+            case STAFF           -> "Permanently increases MAG — optimised for Mages.";
+            case ARMOR           -> "Permanently increases DEF.";
+            case AMULET          -> "Permanently increases MAG.";
+            case STRENGTH_POTION -> "Temporarily boosts ATK for one combat encounter.";
+        };
+    }
 }

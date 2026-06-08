@@ -80,6 +80,43 @@ class HeroTest {
     }
 
     @Test
+    @DisplayName("Identical potions stack in a single inventory slot")
+    void potionsStack() {
+        Item p1 = new Item("p1", "Health Potion", ItemType.HEALTH_POTION, 30);
+        Item p2 = new Item("p2", "Health Potion", ItemType.HEALTH_POTION, 30);
+        warrior.addItem(p1);
+        warrior.addItem(p2);
+        assertEquals(1, warrior.getInventory().size(),
+                "Two health potions should occupy one slot");
+        assertEquals(2, warrior.getInventory().get(0).getQuantity(),
+                "Stack quantity should be 2");
+    }
+
+    @Test
+    @DisplayName("Using a potion decrements quantity, not removes slot")
+    void usingPotionDecrementsQuantity() {
+        Item p1 = new Item("p1", "Health Potion", ItemType.HEALTH_POTION, 30);
+        Item p2 = new Item("p2", "Health Potion", ItemType.HEALTH_POTION, 30);
+        warrior.addItem(p1);
+        warrior.addItem(p2);
+        // Take damage so heal has effect
+        warrior.takeDamage(40);
+        // Use one potion — slot should remain with quantity 1
+        warrior.getInventory().get(0).decrementQuantity();
+        assertEquals(1, warrior.getInventory().get(0).getQuantity());
+    }
+
+    @Test
+    @DisplayName("Equipment items are not stacked")
+    void equipmentDoesNotStack() {
+        Item s1 = new Item("s1", "Iron Sword", ItemType.SWORD, 10);
+        Item s2 = new Item("s2", "Steel Sword", ItemType.SWORD, 15);
+        warrior.addItem(s1);
+        warrior.addItem(s2);
+        assertEquals(2, warrior.getInventory().size(),
+                "Two swords should occupy two separate slots");
+    }
+    @Test
     @DisplayName("Items can be added to and removed from inventory")
     void inventoryAddRemove() {
         Item potion = new Item("p1", "Health Potion", ItemType.HEALTH_POTION, 30);

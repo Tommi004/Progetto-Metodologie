@@ -14,6 +14,7 @@ public class DungeonManager implements DungeonController {
     private static final int ENEMY_ROOMS    = 18;
     private static final int TREASURE_ROOMS = 8;
     private static final int TRAP_ROOMS     = 4;
+    private static final int SHOP_ROOMS     = 2;
     private final Random random = new Random();
 
     /**
@@ -90,6 +91,17 @@ public class DungeonManager implements DungeonController {
             if (room.getType() == RoomType.EMPTY) {
                 room.setType(RoomType.TRAP);
                 room.setTrap(getRandomTrapForLevel(level));
+                placed++;
+            }
+        }
+
+        placed = 0;
+        while (placed < SHOP_ROOMS) {
+            int r = random.nextInt(size);
+            int c = random.nextInt(size);
+            Room room = dungeon.getRoom(r, c);
+            if (room.getType() == RoomType.EMPTY) {
+                room.setType(RoomType.SHOP);
                 placed++;
             }
         }

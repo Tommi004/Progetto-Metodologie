@@ -193,7 +193,9 @@ public class CombatManager implements CombatController {
                     .findFirst()
                     .map(item -> {
                         applyPotionEffect(hero, item);
-                        hero.removeItem(item.getId());
+                        if (item.decrementQuantity()) {
+                            hero.removeItem(item.getId());
+                        }
                         return true;
                     })
                     .orElse(false);
@@ -206,7 +208,9 @@ public class CombatManager implements CombatController {
                 .findFirst()
                 .map(item -> {
                     applyPotionEffect(hero, item);
-                    hero.removeItem(item.getId());
+                    if (item.decrementQuantity()) {
+                        hero.removeItem(item.getId());
+                    }
                     return true;
                 })
                 .orElse(false);
