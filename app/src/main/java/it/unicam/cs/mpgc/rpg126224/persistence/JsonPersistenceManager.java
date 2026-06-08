@@ -2,6 +2,7 @@ package it.unicam.cs.mpgc.rpg126224.persistence;
 
 import it.unicam.cs.mpgc.rpg126224.model.*;
 import it.unicam.cs.mpgc.rpg126224.model.Rarity;
+import it.unicam.cs.mpgc.rpg126224.model.TrapType;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
@@ -9,7 +10,7 @@ import java.util.*;
 public class JsonPersistenceManager implements PersistenceManager {
 
     private static final String SAVE_DIR  = "save";
-    private static final String SAVE_FILE = "save/level_up.json";
+    private static final String SAVE_FILE = "save/dungeon_protocol.json";
 
     @Override
     public void saveGame(GameState state) {
@@ -54,6 +55,9 @@ public class JsonPersistenceManager implements PersistenceManager {
                     sb.append(prefix).append("type=").append(room.getType().name()).append("\n");
                     sb.append(prefix).append("visited=").append(room.isVisited()).append("\n");
                     sb.append(prefix).append("cleared=").append(room.isCleared()).append("\n");
+                    if (room.hasTrap()) {
+                        sb.append(prefix).append("trap=").append(room.getTrap().name()).append("\n");
+                    }
                     List<Enemy> enemies = room.getEnemies();
                     sb.append(prefix).append("enemyCount=").append(enemies.size()).append("\n");
                     for (int i = 0; i < enemies.size(); i++) {
@@ -154,6 +158,8 @@ public class JsonPersistenceManager implements PersistenceManager {
                 room.setType(RoomType.valueOf(typeStr));
                 if (getBool(d, prefix + "visited")) room.markVisited();
                 if (getBool(d, prefix + "cleared")) room.markCleared();
+                String trapStr = d.get(prefix + "trap");
+                if (trapStr != null) room.setTrap(TrapType.valueOf(trapStr));
                 int enemyCount = getInt(d, prefix + "enemyCount");
                 for (int i = 0; i < enemyCount; i++) {
                     String ep = prefix + "enemy_" + i + "_";

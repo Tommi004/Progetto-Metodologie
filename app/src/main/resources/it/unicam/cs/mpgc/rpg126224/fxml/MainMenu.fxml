@@ -22,10 +22,7 @@
 
         <Label text="The dungeon remembers those who fall."
                style="-fx-font-family: Monospace; -fx-font-size: 15;
-                      -fx-text-fill: #303050;"/>
-
-        <Label text="⚔  ☠  🐉  ⚔"
-               style="-fx-font-size: 22; -fx-opacity: 0.4;"/>
+                      -fx-text-fill: #ffd700;"/>
 
         <Separator style="-fx-background-color: #1a1a3a;" maxWidth="320"/>
 
@@ -52,9 +49,9 @@
         </VBox>
 
         <!-- Version -->
-        <Label text="Tommaso Leonardi"
+        <Label text="Tommaso Leonardi - 126224"
                style="-fx-font-family: Monospace; -fx-font-size: 10;
-                      -fx-text-fill: #202030;"/>
+                      -fx-text-fill: #ffd700;"/>
     </VBox>
 
 </StackPane>

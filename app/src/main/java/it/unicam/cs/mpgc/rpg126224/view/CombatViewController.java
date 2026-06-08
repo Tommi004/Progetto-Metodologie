@@ -276,6 +276,9 @@ public class CombatViewController {
             // Check for level-up and show overlay before re-enabling actions
             if (hero.getLevel() > levelBefore) {
                 appendLog("★ LEVEL UP! → Lv." + hero.getLevel());
+                // Update originalAttack to include the level-up ATK bonus
+                // so endCombat doesn't roll it back when removing the Strength Potion boost
+                originalAttack += (hero.getAttack() - atkBefore);
                 showLevelUpOverlay(hero, levelBefore,
                         maxHpBefore, atkBefore, defBefore, magBefore, manaBefore,
                         () -> finishTurn(result));
@@ -469,6 +472,9 @@ public class CombatViewController {
             hero.boostAttack(originalAttack - hero.getAttack());
             appendLog("⚗ Strength boost fades away.");
         }
+
+        // Restore ATK if Hex Mark debuff was active during this combat
+        gameController.clearAtkDebuff();
 
         PauseTransition endDelay = new PauseTransition(Duration.millis(700));
         endDelay.setOnFinished(ev -> {

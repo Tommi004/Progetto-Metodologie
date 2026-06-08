@@ -2,6 +2,7 @@ package it.unicam.cs.mpgc.rpg126224.view;
 
 import it.unicam.cs.mpgc.rpg126224.controller.GameController;
 import it.unicam.cs.mpgc.rpg126224.model.*;
+import it.unicam.cs.mpgc.rpg126224.model.TrapType;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -65,6 +66,10 @@ public class GameViewController implements ViewRefreshable {
 
     @FXML private void handleSave()  { gameController.saveGame(); showMessage("✓ Game saved."); }
     @FXML private void handleMenu()  { onReturnToMenu.run(); }
+    @FXML private void handleUp()    { handleMove(-1,  0); }
+    @FXML private void handleDown()  { handleMove( 1,  0); }
+    @FXML private void handleLeft()  { handleMove( 0, -1); }
+    @FXML private void handleRight() { handleMove( 0,  1); }
 
     // -------------------------------------------------------------------------
     // Movement and room logic
@@ -83,8 +88,18 @@ public class GameViewController implements ViewRefreshable {
 
     private void handleRoomEntry() {
         Room room = gameController.getCurrentRoom();
+        handleTrap(room);
         handleTreasure(room);
         handleCombat(room);
+    }
+
+    private void handleTrap(Room room) {
+        if (!room.hasTrap()) return;
+        TrapType trap = gameController.triggerTrap();
+        if (trap == null) return;
+        javafx.application.Platform.runLater(() ->
+                ViewGameDialogFactory.showTrap(trap));
+        refresh();
     }
 
     private void handleTreasure(Room room) {

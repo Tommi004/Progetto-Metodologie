@@ -14,8 +14,9 @@ public class Room {
     private RoomType type;
     private final List<Enemy> enemies;
     private final List<Item> items;
-    private boolean visited;
-    private boolean cleared;
+    private boolean  visited;
+    private boolean  cleared;
+    private TrapType trap;     // null = no trap
 
     public Room(int row, int col, RoomType type) {
         this.row = row;
@@ -37,6 +38,11 @@ public class Room {
     public boolean isCleared() { return cleared; }
     public void markVisited() { this.visited = true; }
     public void markCleared() { this.cleared = true; }
+
+    public TrapType getTrap()          { return trap; }
+    public boolean  hasTrap()          { return trap != null; }
+    public void     setTrap(TrapType t){ this.trap = t; }
+    public void     disarmTrap()       { this.trap = null; }
 
     public void addEnemy(Enemy enemy) {
         enemies.add(Objects.requireNonNull(enemy));

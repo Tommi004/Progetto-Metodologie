@@ -13,6 +13,7 @@ public class DungeonManager implements DungeonController {
 
     private static final int ENEMY_ROOMS    = 18;
     private static final int TREASURE_ROOMS = 8;
+    private static final int TRAP_ROOMS     = 4;
     private final Random random = new Random();
 
     /**
@@ -81,6 +82,18 @@ public class DungeonManager implements DungeonController {
             }
         }
 
+        placed = 0;
+        while (placed < TRAP_ROOMS) {
+            int r = random.nextInt(size);
+            int c = random.nextInt(size);
+            Room room = dungeon.getRoom(r, c);
+            if (room.getType() == RoomType.EMPTY) {
+                room.setType(RoomType.TRAP);
+                room.setTrap(getRandomTrapForLevel(level));
+                placed++;
+            }
+        }
+
         return dungeon;
     }
 
@@ -106,6 +119,16 @@ public class DungeonManager implements DungeonController {
             case 3  -> EnemyType.DRAGON;
             case 4  -> EnemyType.LEVIATHAN;
             default -> EnemyType.DEMON_LORD;
+        };
+    }
+
+    private TrapType getRandomTrapForLevel(int level) {
+        return switch (level) {
+            case 1  -> TrapType.SPIKE_TRAP;
+            case 2  -> TrapType.VENOM_POOL;
+            case 3  -> TrapType.HEX_MARK;
+            case 4  -> TrapType.LIFE_SIPHON;
+            default -> TrapType.BRIMSTONE_PIT;
         };
     }
 

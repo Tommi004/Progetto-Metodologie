@@ -7,6 +7,7 @@ public enum RoomType {
     EMPTY,
     ENEMY,
     TREASURE,
+    TRAP,
     START,
     EXIT
 }

@@ -119,6 +119,48 @@ public class GameController {
         return soul;
     }
 
+    private boolean atkDebuffActive = false;
+    private int     atkDebuffAmount = 0;
+
+    /**
+     * Triggers the trap in the current room if present.
+     * Returns the trap that was triggered, or null if no trap.
+     */
+    public TrapType triggerTrap() {
+        Room room = getCurrentRoom();
+        if (!room.hasTrap()) return null;
+        TrapType trap = room.getTrap();
+        Hero hero = currentState.getHero();
+
+        if (trap.getHpDamage() > 0) {
+            hero.setCurrentHp(Math.max(0, hero.getCurrentHp() - trap.getHpDamage()));
+        }
+        if (trap.getMpDamage() > 0) {
+            int newMana = Math.max(0, hero.getCurrentMana() - trap.getMpDamage());
+            hero.setCurrentMana(newMana);
+        }
+        if (trap.hasAtkDebuff()) {
+            atkDebuffAmount = hero.getAttack() / 2;
+            atkDebuffActive = true;
+            hero.boostAttack(-atkDebuffAmount);
+        }
+
+        room.disarmTrap();
+        room.markCleared();
+        return trap;
+    }
+
+    public boolean isAtkDebuffActive() { return atkDebuffActive; }
+
+    /** Called at the start of combat to clear the ATK debuff after it has been applied. */
+    public void clearAtkDebuff() {
+        if (atkDebuffActive) {
+            currentState.getHero().boostAttack(atkDebuffAmount);
+            atkDebuffActive = false;
+            atkDebuffAmount = 0;
+        }
+    }
+
     public void collectRoomItems() {
         Room room = getCurrentRoom();
         List<Item> items = room.getItems();

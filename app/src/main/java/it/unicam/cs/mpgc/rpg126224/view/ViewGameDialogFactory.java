@@ -1,5 +1,6 @@
 package it.unicam.cs.mpgc.rpg126224.view;
 
+import it.unicam.cs.mpgc.rpg126224.model.TrapType;
 import javafx.animation.FadeTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -27,6 +28,27 @@ public class ViewGameDialogFactory {
     private ViewGameDialogFactory() {}
 
     /**
+     * Shows a modal dialog when the hero triggers a trap.
+     *
+     * @param trap the trap that was triggered
+     */
+    public static void showTrap(TrapType trap) {
+        Stage dialog = buildBaseDialog("Trap!", 360, 240, "#0a0000");
+
+        Label icon  = iconLabel(trap.getEmoji());
+        Label title = titleLabel(trap.getDisplayName().toUpperCase(), "#ff4444");
+        title.setEffect(glow("#ff4444", 18));
+
+        Label effect = bodyLabel(trap.getEffectDescription());
+        effect.setTextFill(Color.web("#ff8888"));
+
+        Button okBtn = confirmButton("CONTINUE", "#4a0000", "#ff8888");
+        okBtn.setOnAction(e -> dialog.close());
+
+        showWithFade(dialog, buildRoot("#0a0000", icon, title, effect, okBtn));
+    }
+
+    /**
      * Shows the "Floor Cleared" dialog when the hero advances to the next level.
      *
      * @param newLevel the level the hero is advancing to
@@ -39,7 +61,7 @@ public class ViewGameDialogFactory {
         title.setEffect(glow("#ffd700", 20));
 
         Label msg = bodyLabel("You defeated the boss!");
-        Label sub = subLabel("Descending to floor " + newLevel + " of 3...", "#8080b0");
+        Label sub = subLabel("Descending to floor " + newLevel + " of 5th...", "#8080b0");
 
         Button okBtn = confirmButton("CONTINUE", "#8a6a00", "#ffd700");
         okBtn.setOnAction(e -> dialog.close());
@@ -80,8 +102,8 @@ public class ViewGameDialogFactory {
         Label title = titleLabel("VICTORY!", "#ffd700");
         title.setEffect(glow("#ffd700", 20));
 
-        Label msg = bodyLabel("You conquered the dungeon!");
-        Label sub = subLabel("The Demon Lord is slain. Your name will be remembered forever!", "#a0a060");
+        Label msg = bodyLabel("You conquered Level Up!");
+        Label sub = subLabel("The Dragon is slain. The dungeon is yours!", "#a0a060");
 
         Button okBtn = confirmButton("RETURN TO MENU", "#8a6a00", "#ffd700");
         okBtn.setOnAction(e -> { dialog.close(); onReturnToMenu.run(); });

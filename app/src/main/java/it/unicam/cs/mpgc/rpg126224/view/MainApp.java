@@ -55,8 +55,13 @@ public class MainApp extends Application {
 
     private void showCharacterCreation() {
         CharacterCreationView creation =
-                new CharacterCreationView(controller, this::showGame);
+                new CharacterCreationView(controller, this::showIntro);
         primaryStage.setScene(new Scene(creation.getRoot(), 940, 660));
+    }
+
+    private void showIntro() {
+        IntroView intro = new IntroView(this::showGame);
+        primaryStage.setScene(new Scene(intro.getRoot(), 940, 660));
     }
 
     private void showGame() {

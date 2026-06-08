@@ -372,6 +372,10 @@ public class DungeonMapView implements ViewRefreshable {
                 color = "#ffd700";
                 size  = 22;
             }
+            case TRAP -> {
+                if (!room.hasTrap()) { icon = "·"; color = "#2a2a50"; size = 12; }
+                else { icon = "·"; color = "#2a2a50"; size = 12; }
+            }
             case ENEMY -> {
                 if (room.isCleared()) { icon = "✓"; color = "#2a6a2a"; size = 16; }
                 else { icon = getEnemyIcon(room); color = "#ff4444"; size = 22; }
