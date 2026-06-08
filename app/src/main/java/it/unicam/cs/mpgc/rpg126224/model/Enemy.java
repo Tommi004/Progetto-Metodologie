@@ -3,7 +3,7 @@ package it.unicam.cs.mpgc.rpg126224.model;
 import java.util.Objects;
 
 /**
- * Represents an enemy in Dungeon Protocol.
+ * Represents an enemy in Level Up!.
  */
 public class Enemy implements GameEntity {
 

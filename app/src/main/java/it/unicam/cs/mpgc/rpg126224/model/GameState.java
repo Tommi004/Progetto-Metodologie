@@ -3,7 +3,7 @@ package it.unicam.cs.mpgc.rpg126224.model;
 import java.util.Objects;
 
 /**
- * Represents the complete state of a Dungeon Protocol game session.
+ * Represents the complete state of a Level Up! game session.
  */
 public class GameState {
 

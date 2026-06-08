@@ -39,7 +39,7 @@ public class ViewGameDialogFactory {
         title.setEffect(glow("#ffd700", 20));
 
         Label msg = bodyLabel("You defeated the boss!");
-        Label sub = subLabel("Descending to floor " + newLevel + " of 5...", "#8080b0");
+        Label sub = subLabel("Descending to floor " + newLevel + " of 3...", "#8080b0");
 
         Button okBtn = confirmButton("CONTINUE", "#8a6a00", "#ffd700");
         okBtn.setOnAction(e -> dialog.close());
@@ -80,8 +80,8 @@ public class ViewGameDialogFactory {
         Label title = titleLabel("VICTORY!", "#ffd700");
         title.setEffect(glow("#ffd700", 20));
 
-        Label msg = bodyLabel("You conquered Dungeon Protocol!");
-        Label sub = subLabel("The demon king has fallen. The dungeon is yours!", "#a0a060");
+        Label msg = bodyLabel("You conquered the dungeon!");
+        Label sub = subLabel("The Demon Lord is slain. Your name will be remembered forever!", "#a0a060");
 
         Button okBtn = confirmButton("RETURN TO MENU", "#8a6a00", "#ffd700");
         okBtn.setOnAction(e -> { dialog.close(); onReturnToMenu.run(); });

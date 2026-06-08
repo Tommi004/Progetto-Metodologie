@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Central application controller (facade) for Dungeon Protocol.
+ * Central application controller (facade) for Level Up!.
  */
 public class GameController {
 

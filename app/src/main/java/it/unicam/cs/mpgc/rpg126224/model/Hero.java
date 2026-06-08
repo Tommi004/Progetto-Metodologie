@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Represents the player's hero in Dungeon Protocol.
+ * Represents the player's hero in Level Up!.
  */
 public class Hero implements GameEntity {
 

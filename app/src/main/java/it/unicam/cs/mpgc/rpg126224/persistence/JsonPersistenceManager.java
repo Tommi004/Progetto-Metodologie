@@ -9,7 +9,7 @@ import java.util.*;
 public class JsonPersistenceManager implements PersistenceManager {
 
     private static final String SAVE_DIR  = "save";
-    private static final String SAVE_FILE = "save/dungeon_protocol.json";
+    private static final String SAVE_FILE = "save/level_up.json";
 
     @Override
     public void saveGame(GameState state) {

@@ -24,7 +24,7 @@ public class MainApp extends Application {
     public void start(Stage stage) {
         this.primaryStage = stage;
         this.controller   = new GameController(new JsonPersistenceManager());
-        stage.setTitle("Dungeon Protocol");
+        stage.setTitle("Level Up!");
         stage.setMinWidth(940);
         stage.setMinHeight(660);
         showMainMenu();

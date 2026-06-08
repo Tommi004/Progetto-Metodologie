@@ -1,7 +1,7 @@
 package it.unicam.cs.mpgc.rpg126224.model;
 
 /**
- * Enumeration of all enemy types in Dungeon Protocol.
+ * Enumeration of all enemy types in Level Up!.
  */
 public enum EnemyType {
 

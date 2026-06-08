@@ -1,7 +1,7 @@
 package it.unicam.cs.mpgc.rpg126224.model;
 
 /**
- * Enumeration of all item types available in Dungeon Protocol.
+ * Enumeration of all item types available in Level Up!.
  */
 public enum ItemType {
 

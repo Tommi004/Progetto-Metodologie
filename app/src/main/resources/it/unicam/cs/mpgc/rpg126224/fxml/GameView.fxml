@@ -13,7 +13,7 @@
               style="-fx-background-color: #000000; -fx-padding: 8 15 8 15;
                      -fx-border-color: #1a1a3a; -fx-border-width: 0 0 1 0;">
 
-            <Label text="⚔  DUNGEON PROTOCOL"
+            <Label text="⚔  LEVEL UP!"
                    style="-fx-font-family: Monospace; -fx-font-size: 16;
                           -fx-font-weight: bold; -fx-text-fill: #e94560;"/>
 

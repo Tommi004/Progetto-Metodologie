@@ -3,7 +3,7 @@ package it.unicam.cs.mpgc.rpg126224.model;
 import java.util.Objects;
 
 /**
- * Represents a collectible item in Dungeon Protocol.
+ * Represents a collectible item in Level Up!.
  * Each item has a {@link Rarity} that affects its value and display.
  */
 public class Item {

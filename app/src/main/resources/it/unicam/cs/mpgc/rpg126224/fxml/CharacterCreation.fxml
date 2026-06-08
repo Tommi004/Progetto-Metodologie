@@ -18,7 +18,7 @@
         <!-- Left: form -->
         <VBox alignment="CENTER" spacing="18" minWidth="380">
 
-            <Label fx:id="titleLabel" text="DUNGEON PROTOCOL"
+            <Label fx:id="titleLabel" text="LEVEL UP!"
                    style="-fx-font-family: Monospace; -fx-font-size: 30;
                           -fx-font-weight: bold; -fx-text-fill: #e94560;"/>
 
