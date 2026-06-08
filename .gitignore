@@ -1,6 +1,7 @@
 # Gradle
 .gradle/
 build/
+app/bin/
 
 # Java
 *.class
