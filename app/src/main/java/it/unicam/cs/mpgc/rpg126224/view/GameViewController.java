@@ -2,6 +2,7 @@ package it.unicam.cs.mpgc.rpg126224.view;
 
 import it.unicam.cs.mpgc.rpg126224.controller.GameController;
 import it.unicam.cs.mpgc.rpg126224.model.*;
+import it.unicam.cs.mpgc.rpg126224.model.RunStats;
 import it.unicam.cs.mpgc.rpg126224.model.TrapType;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -120,8 +121,9 @@ public class GameViewController implements ViewRefreshable {
         new CombatView(gameController, enemy, () -> {
             refresh();
             if (gameController.getCurrentState().isGameOver()) {
+                RunStats stats = gameController.buildRunStats();
                 Platform.runLater(() ->
-                        ViewGameDialogFactory.showGameOver(onReturnToMenu));
+                        ViewGameDialogFactory.showGameOver(stats, onReturnToMenu));
             } else if (isExitRoom && gameController.getCurrentRoom().isCleared()) {
                 handleExitAfterCombat();
             }
@@ -131,8 +133,9 @@ public class GameViewController implements ViewRefreshable {
     private void handleExitAfterCombat() {
         if (!gameController.checkExitCondition()) return;
         if (gameController.isVictory()) {
+            RunStats stats = gameController.buildRunStats();
             Platform.runLater(() ->
-                    ViewGameDialogFactory.showVictory(onReturnToMenu));
+                    ViewGameDialogFactory.showVictory(stats, onReturnToMenu));
         } else {
             int level = gameController.getDungeonLevel();
             Platform.runLater(() -> {
@@ -145,7 +148,8 @@ public class GameViewController implements ViewRefreshable {
     private void handleExitCheck() {
         if (!gameController.checkExitCondition()) return;
         if (gameController.isVictory()) {
-            ViewGameDialogFactory.showVictory(onReturnToMenu);
+            RunStats stats = gameController.buildRunStats();
+            ViewGameDialogFactory.showVictory(stats, onReturnToMenu);
         } else {
             ViewGameDialogFactory.showLevelAdvance(gameController.getDungeonLevel());
             refresh();

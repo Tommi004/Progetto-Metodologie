@@ -1,5 +1,6 @@
 package it.unicam.cs.mpgc.rpg126224.view;
 
+import it.unicam.cs.mpgc.rpg126224.model.RunStats;
 import it.unicam.cs.mpgc.rpg126224.model.TrapType;
 import javafx.animation.FadeTransition;
 import javafx.geometry.Insets;
@@ -7,7 +8,9 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -17,9 +20,14 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 /**
- * Factory for modal game dialogs (level advance, game over, victory).
- * Extracted from GameView to respect the Single Responsibility Principle:
- * GameView handles the main game screen; this class handles dialog creation only.
+ * Factory for modal game dialogs (trap, level advance, game over, victory).
+ *
+ * <p>Extracted from GameView to respect the Single Responsibility Principle:
+ * GameView handles the main game screen; this class handles dialog creation only.</p>
+ *
+ * <p>The {@link #showGameOver(RunStats, Runnable)} overload shows a detailed
+ * post-run summary (enemies defeated, damage dealt/taken, floors cleared and
+ * cause of death) instead of the generic one-liner used previously.</p>
  */
 public class ViewGameDialogFactory {
 
@@ -27,16 +35,20 @@ public class ViewGameDialogFactory {
 
     private ViewGameDialogFactory() {}
 
+    // ------------------------------------------------------------------
+    // Public dialog methods
+    // ------------------------------------------------------------------
+
     /**
      * Shows a modal dialog when the hero triggers a trap.
      *
      * @param trap the trap that was triggered
      */
     public static void showTrap(TrapType trap) {
-        Stage dialog = buildBaseDialog("Trap!", 360, 240, "#0a0000");
+        Stage dialog = buildBaseDialog("Trap!", 360, 240);
 
-        Label icon  = iconLabel(trap.getEmoji());
-        Label title = titleLabel(trap.getDisplayName().toUpperCase(), "#ff4444");
+        Label icon   = iconLabel(trap.getEmoji());
+        Label title  = titleLabel(trap.getDisplayName().toUpperCase(), "#ff4444");
         title.setEffect(glow("#ff4444", 18));
 
         Label effect = bodyLabel(trap.getEffectDescription());
@@ -45,7 +57,8 @@ public class ViewGameDialogFactory {
         Button okBtn = confirmButton("CONTINUE", "#4a0000", "#ff8888");
         okBtn.setOnAction(e -> dialog.close());
 
-        showWithFade(dialog, buildRoot("#0a0000", icon, title, effect, okBtn));
+        showWithFade(dialog, 360, 240, "#0a0000",
+                icon, title, effect, okBtn);
     }
 
     /**
@@ -54,68 +67,131 @@ public class ViewGameDialogFactory {
      * @param newLevel the level the hero is advancing to
      */
     public static void showLevelAdvance(int newLevel) {
-        Stage dialog = buildBaseDialog("Floor Cleared!", 380, 280, "#0a0010");
+        Stage dialog = buildBaseDialog("Floor Cleared!", 380, 280);
 
         Label icon  = iconLabel("⚔");
         Label title = titleLabel("FLOOR CLEARED!", "#ffd700");
         title.setEffect(glow("#ffd700", 20));
 
         Label msg = bodyLabel("You defeated the boss!");
-        Label sub = subLabel("Descending to floor " + newLevel + " of 5th...", "#8080b0");
+        Label sub = subLabel("Descending to floor " + newLevel + " of 5...", "#8080b0");
 
         Button okBtn = confirmButton("CONTINUE", "#8a6a00", "#ffd700");
         okBtn.setOnAction(e -> dialog.close());
 
-        showWithFade(dialog, buildRoot("#0a0010", icon, title, msg, sub, okBtn));
+        showWithFade(dialog, 380, 280, "#0a0010",
+                icon, title, msg, sub, okBtn);
     }
 
     /**
-     * Shows the "Game Over" dialog when the hero is defeated.
+     * Shows a detailed "Game Over" dialog with run statistics.
      *
-     * @param onReturnToMenu callback invoked when the player confirms
+     * <p>Displays: cause of death, enemies defeated, damage dealt, damage taken
+     * and floors cleared — giving the player a full picture of their run.</p>
+     *
+     * @param stats          the {@link RunStats} snapshot collected during the run
+     * @param onReturnToMenu callback invoked when the player dismisses the dialog
      */
-    public static void showGameOver(Runnable onReturnToMenu) {
-        Stage dialog = buildBaseDialog("Game Over", 380, 260, "#0a0000");
+    public static void showGameOver(RunStats stats, Runnable onReturnToMenu) {
+        Stage dialog = buildBaseDialog("Game Over", 420, 460);
 
+        // ── Header ──────────────────────────────────────────────────────
         Label icon  = iconLabel("💀");
         Label title = titleLabel("YOU DIED", "#e94560");
         title.setEffect(glow("#e94560", 20));
 
-        Label msg = bodyLabel("The dungeon claimed another soul...");
-        msg.setTextFill(Color.web("#a06060"));
+        Label causeLabel = buildCauseOfDeathLabel(stats.causeOfDeath());
 
+        // ── Separator ───────────────────────────────────────────────────
+        Separator sep = new Separator();
+        sep.setMaxWidth(300);
+        sep.setStyle("-fx-background-color: #5a0000;");
+
+        // ── Stats block ─────────────────────────────────────────────────
+        Label statsHeader = new Label("─── RUN SUMMARY ───");
+        statsHeader.setFont(Font.font(FONT_MONO, FontWeight.BOLD, 12));
+        statsHeader.setTextFill(Color.web("#cc4444"));
+
+        VBox statsBox = new VBox(6);
+        statsBox.setAlignment(Pos.CENTER_LEFT);
+        statsBox.setMaxWidth(300);
+
+        addStatRow(statsBox, "⚔  Enemies defeated",
+                String.valueOf(stats.enemiesDefeated()), "#ff8888");
+        addStatRow(statsBox, "🗡  Damage dealt",
+                String.valueOf(stats.totalDamageDealt()), "#ffc0c0");
+        addStatRow(statsBox, "🛡  Damage taken",
+                String.valueOf(stats.totalDamageTaken()), "#ff6666");
+        addStatRow(statsBox, "🏰  Floors cleared",
+                stats.dungeonsCleared() + " / 5", "#cc8888");
+        addStatRow(statsBox, "⭐  Final level",
+                String.valueOf(stats.finalLevel()), "#ffaaaa");
+
+        // ── Action button ────────────────────────────────────────────────
         Button okBtn = confirmButton("RETURN TO MENU", "#6a0000", "#ff8080");
         okBtn.setOnAction(e -> { dialog.close(); onReturnToMenu.run(); });
 
-        showWithFade(dialog, buildRoot("#0a0000", icon, title, msg, okBtn));
+        showWithFade(dialog, 420, 460, "#0a0000",
+                icon, title, causeLabel, sep, statsHeader, statsBox, okBtn);
     }
 
     /**
-     * Shows the "Victory" dialog when the hero completes the dungeon.
+     * Shows the "Victory" dialog when the hero completes all five dungeon floors.
      *
+     * <p>Displays a full run-statistics summary alongside the congratulations
+     * message, so the player can appreciate their final performance.</p>
+     *
+     * @param stats          the {@link RunStats} snapshot collected during the run
      * @param onReturnToMenu callback invoked when the player confirms
      */
-    public static void showVictory(Runnable onReturnToMenu) {
-        Stage dialog = buildBaseDialog("Victory!", 380, 300, "#0a0a00");
+    public static void showVictory(RunStats stats, Runnable onReturnToMenu) {
+        Stage dialog = buildBaseDialog("Victory!", 420, 480);
 
+        // ── Header ──────────────────────────────────────────────────────
         Label icon  = iconLabel("🏆");
         Label title = titleLabel("VICTORY!", "#ffd700");
-        title.setEffect(glow("#ffd700", 20));
+        title.setEffect(glow("#ffd700", 24));
 
-        Label msg = bodyLabel("You conquered Level Up!");
-        Label sub = subLabel("The Dragon is slain. The dungeon is yours!", "#a0a060");
+        Label sub = subLabel("The Demon Soul is vanquished. The dungeon is yours!", "#c8c860");
 
+        // ── Separator ───────────────────────────────────────────────────
+        Separator sep = new Separator();
+        sep.setMaxWidth(300);
+        sep.setStyle("-fx-background-color: #5a4a00;");
+
+        // ── Stats block ─────────────────────────────────────────────────
+        Label statsHeader = new Label("─── RUN SUMMARY ───");
+        statsHeader.setFont(Font.font(FONT_MONO, FontWeight.BOLD, 12));
+        statsHeader.setTextFill(Color.web("#bba020"));
+
+        VBox statsBox = new VBox(6);
+        statsBox.setAlignment(Pos.CENTER_LEFT);
+        statsBox.setMaxWidth(300);
+
+        addStatRow(statsBox, "⚔  Enemies defeated",
+                String.valueOf(stats.enemiesDefeated()), "#ffd700");
+        addStatRow(statsBox, "🗡  Damage dealt",
+                String.valueOf(stats.totalDamageDealt()), "#ffe080");
+        addStatRow(statsBox, "🛡  Damage taken",
+                String.valueOf(stats.totalDamageTaken()), "#ffcc60");
+        addStatRow(statsBox, "🏰  Floors cleared",
+                stats.dungeonsCleared() + " / 5", "#ffd700");
+        addStatRow(statsBox, "⭐  Final level",
+                String.valueOf(stats.finalLevel()), "#fff0a0");
+
+        // ── Action button ────────────────────────────────────────────────
         Button okBtn = confirmButton("RETURN TO MENU", "#8a6a00", "#ffd700");
         okBtn.setOnAction(e -> { dialog.close(); onReturnToMenu.run(); });
 
-        showWithFade(dialog, buildRoot("#0a0a00", icon, title, msg, sub, okBtn));
+        showWithFade(dialog, 420, 480, "#0a0a00",
+                icon, title, sub, sep, statsHeader, statsBox, okBtn);
     }
 
-    // -------------------------------------------------------------------------
-    // Private helpers
-    // -------------------------------------------------------------------------
+    // ------------------------------------------------------------------
+    // Private helpers — dialog construction
+    // ------------------------------------------------------------------
 
-    private static Stage buildBaseDialog(String title, int w, int h, String bg) {
+    private static Stage buildBaseDialog(String title, int w, int h) {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setTitle(title);
@@ -123,26 +199,73 @@ public class ViewGameDialogFactory {
         return dialog;
     }
 
-    private static VBox buildRoot(String bg, javafx.scene.Node... nodes) {
-        VBox root = new VBox(20);
+    /**
+     * Builds the root VBox, wraps it in a Scene, applies a fade-in and
+     * shows the dialog modally.
+     */
+    private static void showWithFade(Stage dialog, int w, int h,
+                                     String bg, javafx.scene.Node... nodes) {
+        VBox root = new VBox(16);
         root.setAlignment(Pos.CENTER);
-        root.setPadding(new Insets(35));
+        root.setPadding(new Insets(30));
         root.setStyle("-fx-background-color: " + bg + ";");
         root.getChildren().addAll(nodes);
-        return root;
-    }
 
-    private static void showWithFade(Stage dialog, VBox root) {
         FadeTransition ft = new FadeTransition(Duration.millis(400), root);
         ft.setFromValue(0);
         ft.setToValue(1);
-        dialog.setScene(new Scene(root,
-                root.getPrefWidth() > 0 ? root.getPrefWidth() : 380,
-                root.getPrefHeight() > 0 ? root.getPrefHeight() : 280));
-        // Resize hint is embedded in the Stage creation
+        dialog.setScene(new Scene(root, w, h));
         ft.play();
         dialog.showAndWait();
     }
+
+    /**
+     * Builds the italicised cause-of-death label.
+     * Falls back to a generic message when {@code causeOfDeath} is null
+     * (e.g. the dialog is called unexpectedly after a victory).
+     */
+    private static Label buildCauseOfDeathLabel(String causeOfDeath) {
+        String text = (causeOfDeath != null)
+                ? causeOfDeath
+                : "The dungeon claimed another soul...";
+        Label l = new Label(text);
+        l.setFont(Font.font(FONT_MONO, FontWeight.NORMAL, 12));
+        l.setTextFill(Color.web("#c06060"));
+        l.setWrapText(true);
+        l.setMaxWidth(340);
+        l.setStyle("-fx-font-style: italic;");
+        return l;
+    }
+
+    /**
+     * Adds a single two-column stat row to {@code parent}.
+     *
+     * @param parent    the VBox to append to
+     * @param labelText left-side label (stat name with emoji)
+     * @param value     right-side value string
+     * @param color     hex color for the value text
+     */
+    private static void addStatRow(VBox parent,
+                                   String labelText, String value, String color) {
+        HBox row = new HBox();
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setSpacing(0);
+
+        Label name = new Label(String.format("%-30s", labelText));
+        name.setFont(Font.font(FONT_MONO, 12));
+        name.setTextFill(Color.web("#c0c0c0"));
+
+        Label val = new Label(value);
+        val.setFont(Font.font(FONT_MONO, FontWeight.BOLD, 12));
+        val.setTextFill(Color.web(color));
+
+        row.getChildren().addAll(name, val);
+        parent.getChildren().add(row);
+    }
+
+    // ------------------------------------------------------------------
+    // Private helpers — reusable UI primitives
+    // ------------------------------------------------------------------
 
     private static Label iconLabel(String text) {
         Label l = new Label(text);
@@ -168,6 +291,8 @@ public class ViewGameDialogFactory {
         Label l = new Label(text);
         l.setFont(Font.font(FONT_MONO, 11));
         l.setTextFill(Color.web(color));
+        l.setWrapText(true);
+        l.setMaxWidth(340);
         return l;
     }
 
