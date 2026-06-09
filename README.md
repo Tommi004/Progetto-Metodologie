@@ -35,7 +35,7 @@ combatti nemici, raccogli armi e affronta boss sempre più potenti.
 
 ## 🤖 Uso di strumenti di AI
 
-Ho utilizzato **Claude (Anthropic)** come supporto durante lo sviluppo, principalmente per:
+Ho utilizzato **ChatGPT (OpenAI GPT-5.5)** come supporto durante lo sviluppo, principalmente per:
 
 - Chiarire dubbi su concetti teorici (es. applicazione dei principi SOLID, pattern MVC)
 - Suggerimenti su come strutturare alcune parti del codice
