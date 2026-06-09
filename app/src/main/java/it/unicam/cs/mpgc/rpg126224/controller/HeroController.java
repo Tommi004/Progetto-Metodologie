@@ -20,12 +20,14 @@ import it.unicam.cs.mpgc.rpg126224.model.Item;
  *
  * <h2>Item effect mapping</h2>
  * <ul>
- *   <li>{@code SWORD}, {@code BOW}    → {@code boostAttack}</li>
- *   <li>{@code STAFF}, {@code AMULET} → {@code boostMagic}</li>
- *   <li>{@code ARMOR}                 → {@code boostDefense}</li>
- *   <li>{@code HEALTH_POTION}         → {@code heal}</li>
- *   <li>{@code MANA_POTION}           → {@code restoreMana}</li>
- *   <li>{@code STRENGTH_POTION}       → temporary ATK boost (cleared after combat)</li>
+ *   <li>{@code SWORD}, {@code SPEAR}           → {@code boostAttack}</li>
+ *   <li>{@code BOW}                             → {@code boostAttack} + 30% {@code boostMagic}</li>
+ *   <li>{@code CROSSBOW}                        → {@code boostAttack} + {@code boostMagic}</li>
+ *   <li>{@code STAFF}, {@code AMULET}           → {@code boostMagic}</li>
+ *   <li>{@code ARMOR}, {@code HELMET}           → {@code boostDefense}</li>
+ *   <li>{@code HEALTH_POTION}                   → {@code heal}</li>
+ *   <li>{@code MANA_POTION}                     → {@code restoreMana}</li>
+ *   <li>{@code STRENGTH_POTION}                 → temporary ATK boost (cleared after combat)</li>
  * </ul>
  */
 public interface HeroController {

@@ -138,8 +138,10 @@ class DungeonTest {
     @Test
     @DisplayName("Room is marked visited after hero movement")
     void roomMarkedVisited() {
+        Dungeon freshDungeon = new Dungeon();
+        freshDungeon.removeWallDown(0, 0);
         Hero hero = new Hero("h1", "Test", HeroClass.WARRIOR);
-        manager.moveHero(hero, dungeon, 1, 0);
-        assertTrue(dungeon.getRoom(1, 0).isVisited());
+        manager.moveHero(hero, freshDungeon, 1, 0);
+        assertTrue(freshDungeon.getRoom(1, 0).isVisited());
     }
 }

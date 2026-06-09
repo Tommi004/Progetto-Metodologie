@@ -83,8 +83,8 @@ public class CombatManager implements CombatController {
 
     private int calcHeroSpecial(Hero hero) {
         return switch (hero.getHeroClass()) {
-            case WARRIOR -> (int) (hero.getAttack() * 1.5);
-            case MAGE    -> hero.getMagic() * 2;
+            case WARRIOR -> (int)(hero.getAttack() * 1.8);
+            case MAGE    -> (int)(hero.getMagic()  * 1.5);
             case ARCHER  -> hero.getAttack() + hero.getMagic();
         };
     }
