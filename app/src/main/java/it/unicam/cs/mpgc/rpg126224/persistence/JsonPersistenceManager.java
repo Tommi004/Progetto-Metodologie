@@ -50,6 +50,17 @@ public class JsonPersistenceManager implements PersistenceManager {
             }
             sb.append("dungeonRows=").append(dungeon.getRows()).append("\n");
             sb.append("dungeonCols=").append(dungeon.getCols()).append("\n");
+
+            // Save wall matrices
+            for (int r = 0; r < dungeon.getRows(); r++) {
+                for (int c = 0; c < dungeon.getCols(); c++) {
+                    sb.append("wr_").append(r).append("_").append(c)
+                      .append("=").append(dungeon.hasWallRight(r, c)).append("\n");
+                    sb.append("wd_").append(r).append("_").append(c)
+                      .append("=").append(dungeon.hasWallDown(r, c)).append("\n");
+                }
+            }
+
             for (int r = 0; r < dungeon.getRows(); r++) {
                 for (int c = 0; c < dungeon.getCols(); c++) {
                     Room room = dungeon.getRoom(r, c);
@@ -155,6 +166,17 @@ public class JsonPersistenceManager implements PersistenceManager {
         if (dRows <= 0) dRows = Dungeon.SIZE;
         if (dCols <= 0) dCols = Dungeon.SIZE;
         Dungeon dungeon = new Dungeon(dRows, dCols);
+
+        // Restore wall matrices (all walls present by default — only restore false)
+        for (int r = 0; r < dRows; r++) {
+            for (int c = 0; c < dCols; c++) {
+                if ("false".equals(d.get("wr_" + r + "_" + c)))
+                    dungeon.removeWallRight(r, c);
+                if ("false".equals(d.get("wd_" + r + "_" + c)))
+                    dungeon.removeWallDown(r, c);
+            }
+        }
+
         for (int r = 0; r < dRows; r++) {
             for (int c = 0; c < dCols; c++) {
                 String prefix = "room_" + r + "_" + c + "_";

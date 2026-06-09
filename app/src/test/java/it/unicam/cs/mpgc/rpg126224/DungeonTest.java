@@ -75,6 +75,8 @@ class DungeonTest {
     @DisplayName("Hero movement updates position")
     void heroMovement() {
         Hero hero = new Hero("h1", "Test", HeroClass.WARRIOR);
+        // Remove the wall between (0,0) and (1,0) so the move is valid
+        dungeon.removeWallDown(0, 0);
         boolean moved = manager.moveHero(hero, dungeon, 1, 0);
         assertTrue(moved);
         assertEquals(1, hero.getRow());
@@ -82,7 +84,49 @@ class DungeonTest {
     }
 
     @Test
-    @DisplayName("Hero cannot move outside dungeon bounds")
+    @DisplayName("Hero cannot move through a wall")
+    void heroBlockedByWall() {
+        Hero hero = new Hero("h1", "Test", HeroClass.WARRIOR);
+        // Wall between (0,0) and (1,0) is present by default
+        boolean moved = manager.moveHero(hero, dungeon, 1, 0);
+        assertFalse(moved, "Hero should not move through a wall");
+        assertEquals(0, hero.getRow());
+    }
+
+    @Test
+    @DisplayName("removeWallDown allows movement after wall removal")
+    void wallRemovalAllowsMovement() {
+        Hero hero = new Hero("h1", "Test", HeroClass.WARRIOR);
+        dungeon.removeWallDown(0, 0);
+        assertTrue(manager.moveHero(hero, dungeon, 1, 0));
+    }
+
+    @Test
+    @DisplayName("Generated dungeon is fully connected (START reachable from all cells via BFS)")
+    void generatedDungeonIsConnected() {
+        Dungeon generated = manager.generateDungeon(1);
+        int size = Dungeon.SIZE;
+        boolean[][] visited = new boolean[size][size];
+        java.util.Queue<int[]> queue = new java.util.LinkedList<>();
+        queue.add(new int[]{0, 0});
+        visited[0][0] = true;
+        int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};
+        while (!queue.isEmpty()) {
+            int[] cur = queue.poll();
+            for (int[] d : dirs) {
+                int nr = cur[0] + d[0], nc = cur[1] + d[1];
+                if (generated.isValidPosition(nr, nc) && !visited[nr][nc]
+                        && generated.canMove(cur[0], cur[1], nr, nc)) {
+                    visited[nr][nc] = true;
+                    queue.add(new int[]{nr, nc});
+                }
+            }
+        }
+        for (int r = 0; r < size; r++)
+            for (int c = 0; c < size; c++)
+                assertTrue(visited[r][c],
+                        "Cell [" + r + "," + c + "] not reachable from START");
+    }
     void heroMovementOutOfBounds() {
         Hero hero = new Hero("h1", "Test", HeroClass.WARRIOR);
         boolean moved = manager.moveHero(hero, dungeon, -1, 0);

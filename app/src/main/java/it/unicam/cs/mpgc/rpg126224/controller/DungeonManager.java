@@ -1,13 +1,19 @@
 package it.unicam.cs.mpgc.rpg126224.controller;
 
 import it.unicam.cs.mpgc.rpg126224.model.*;
-import java.util.EnumSet;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
- * Implementation of DungeonController.
+ * Implementation of {@link DungeonController}.
+ *
+ * <p>After placing all room types, a recursive-backtracker (DFS) maze
+ * algorithm carves passages through the wall grid, guaranteeing:
+ * <ul>
+ *   <li>Full connectivity — every cell is reachable from START (0,0).</li>
+ *   <li>Reduced branching — ~30% of walls between non-maze-path neighbours
+ *       are randomly reopened to create optional shortcuts.</li>
+ * </ul>
+ * The hero's movement is blocked by walls via {@link Dungeon#canMove}.</p>
  */
 public class DungeonManager implements DungeonController {
 
@@ -15,105 +21,161 @@ public class DungeonManager implements DungeonController {
     private static final int TREASURE_ROOMS = 8;
     private static final int TRAP_ROOMS     = 4;
     private static final int SHOP_ROOMS     = 2;
+
+    /** Probability (0–100) that an extra passage is opened between two
+     *  non-adjacent maze cells, creating shortcuts/loops. */
+    private static final int EXTRA_PASSAGE_CHANCE = 30;
+
     private final Random random = new Random();
 
-    /**
-     * Tracks the highest rarity found for each unique item type this run.
-     * A unique item can only be replaced by a higher rarity copy.
-     */
     private final java.util.Map<ItemType, Rarity> foundUniqueItems =
             new java.util.EnumMap<>(ItemType.class);
 
-    /** Item types that can only appear once per rarity tier per run. */
     private static final Set<ItemType> UNIQUE_ITEMS = EnumSet.of(
             ItemType.SWORD, ItemType.BOW, ItemType.STAFF,
             ItemType.ARMOR, ItemType.AMULET, ItemType.STRENGTH_POTION
     );
 
-    @Override
-    public void resetUniqueItems() {
-        foundUniqueItems.clear();
-    }
+    @Override public void resetUniqueItems()              { foundUniqueItems.clear(); }
 
     @Override
     public void registerExistingItem(Item item) {
         if (UNIQUE_ITEMS.contains(item.getType())) {
             Rarity existing = foundUniqueItems.get(item.getType());
-            if (existing == null || item.getRarity().isHigherThan(existing)) {
+            if (existing == null || item.getRarity().isHigherThan(existing))
                 foundUniqueItems.put(item.getType(), item.getRarity());
-            }
         }
     }
 
+    // ------------------------------------------------------------------
+    // Dungeon generation
+    // ------------------------------------------------------------------
+
     @Override
     public Dungeon generateDungeon(int level) {
-        // NOTE: foundUniqueItems is NOT cleared here.
-        // Call resetUniqueItems() explicitly when starting a brand new run.
         Dungeon dungeon = new Dungeon();
         int size = Dungeon.SIZE;
 
+        // Fixed anchor rooms
         dungeon.getRoom(0, 0).setType(RoomType.START);
         dungeon.getRoom(0, 0).markVisited();
-
         Room exitRoom = dungeon.getRoom(size - 1, size - 1);
         exitRoom.setType(RoomType.EXIT);
         exitRoom.addEnemy(new Enemy(UUID.randomUUID().toString(), getBossForLevel(level)));
 
-        int placed = 0;
-        while (placed < ENEMY_ROOMS) {
-            int r = random.nextInt(size);
-            int c = random.nextInt(size);
-            Room room = dungeon.getRoom(r, c);
-            if (room.getType() == RoomType.EMPTY) {
-                room.setType(RoomType.ENEMY);
-                room.addEnemy(new Enemy(UUID.randomUUID().toString(), getRandomEnemyForLevel(level)));
-                placed++;
-            }
-        }
-
-        placed = 0;
-        while (placed < TREASURE_ROOMS) {
-            int r = random.nextInt(size);
-            int c = random.nextInt(size);
-            Room room = dungeon.getRoom(r, c);
-            if (room.getType() == RoomType.EMPTY) {
-                room.setType(RoomType.TREASURE);
-                room.addItem(createRandomItem(level));
-                placed++;
-            }
-        }
-
-        placed = 0;
-        while (placed < TRAP_ROOMS) {
-            int r = random.nextInt(size);
-            int c = random.nextInt(size);
-            Room room = dungeon.getRoom(r, c);
-            if (room.getType() == RoomType.EMPTY) {
-                room.setType(RoomType.TRAP);
-                room.setTrap(getRandomTrapForLevel(level));
-                placed++;
-            }
-        }
-
-        placed = 0;
-        while (placed < SHOP_ROOMS) {
-            int r = random.nextInt(size);
-            int c = random.nextInt(size);
-            Room room = dungeon.getRoom(r, c);
-            if (room.getType() == RoomType.EMPTY) {
-                room.setType(RoomType.SHOP);
-                placed++;
-            }
-        }
+        placeRooms(dungeon, size, level);
+        generateMaze(dungeon, size);
 
         return dungeon;
     }
+
+    /** Places ENEMY, TREASURE, TRAP and SHOP rooms on EMPTY cells. */
+    private void placeRooms(Dungeon dungeon, int size, int level) {
+        placeRoomType(dungeon, size, ENEMY_ROOMS, level, RoomType.ENEMY);
+        placeRoomType(dungeon, size, TREASURE_ROOMS, level, RoomType.TREASURE);
+        placeRoomType(dungeon, size, TRAP_ROOMS, level, RoomType.TRAP);
+        placeRoomType(dungeon, size, SHOP_ROOMS, level, RoomType.SHOP);
+    }
+
+    private void placeRoomType(Dungeon dungeon, int size, int count,
+                               int level, RoomType type) {
+        int placed = 0;
+        while (placed < count) {
+            int r = random.nextInt(size);
+            int c = random.nextInt(size);
+            Room room = dungeon.getRoom(r, c);
+            if (room.getType() == RoomType.EMPTY) {
+                room.setType(type);
+                populateRoom(room, type, level);
+                placed++;
+            }
+        }
+    }
+
+    private void populateRoom(Room room, RoomType type, int level) {
+        switch (type) {
+            case ENEMY    -> room.addEnemy(new Enemy(UUID.randomUUID().toString(),
+                                    getRandomEnemyForLevel(level)));
+            case TREASURE -> room.addItem(createRandomItem(level));
+            case TRAP     -> room.setTrap(getRandomTrapForLevel(level));
+            default       -> { /* SHOP, EMPTY — nothing to add */ }
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Maze generation — Recursive Backtracker (DFS)
+    // ------------------------------------------------------------------
+
+    /**
+     * Carves a spanning tree through the grid using iterative DFS, then
+     * opens a random subset of remaining walls to add loops/shortcuts.
+     */
+    private void generateMaze(Dungeon dungeon, int size) {
+        boolean[][] visited = new boolean[size][size];
+        Deque<int[]> stack  = new ArrayDeque<>();
+
+        // Start carving from (0,0)
+        visited[0][0] = true;
+        stack.push(new int[]{0, 0});
+
+        int[][] dirs = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+
+        while (!stack.isEmpty()) {
+            int[] cur = stack.peek();
+            int r = cur[0], c = cur[1];
+
+            // Collect unvisited neighbours
+            List<int[]> neighbours = new ArrayList<>();
+            for (int[] d : dirs) {
+                int nr = r + d[0], nc = c + d[1];
+                if (dungeon.isValidPosition(nr, nc) && !visited[nr][nc])
+                    neighbours.add(new int[]{nr, nc, d[0], d[1]});
+            }
+
+            if (neighbours.isEmpty()) {
+                stack.pop();
+            } else {
+                int[] chosen = neighbours.get(random.nextInt(neighbours.size()));
+                int nr = chosen[0], nc = chosen[1];
+                int dr = chosen[2], dc = chosen[3];
+
+                // Remove wall between current and chosen
+                removeWall(dungeon, r, c, dr, dc);
+                visited[nr][nc] = true;
+                stack.push(new int[]{nr, nc});
+            }
+        }
+
+        // Add extra passages (~30%) for shortcuts
+        for (int r = 0; r < size; r++) {
+            for (int c = 0; c < size; c++) {
+                if (c + 1 < size && dungeon.hasWallRight(r, c)
+                        && random.nextInt(100) < EXTRA_PASSAGE_CHANCE)
+                    dungeon.removeWallRight(r, c);
+                if (r + 1 < size && dungeon.hasWallDown(r, c)
+                        && random.nextInt(100) < EXTRA_PASSAGE_CHANCE)
+                    dungeon.removeWallDown(r, c);
+            }
+        }
+    }
+
+    private void removeWall(Dungeon dungeon, int r, int c, int dr, int dc) {
+        if (dr == 0 && dc == 1)  dungeon.removeWallRight(r, c);
+        if (dr == 0 && dc == -1) dungeon.removeWallRight(r, c - 1);
+        if (dr == 1 && dc == 0)  dungeon.removeWallDown(r, c);
+        if (dr == -1 && dc == 0) dungeon.removeWallDown(r - 1, c);
+    }
+
+    // ------------------------------------------------------------------
+    // Movement
+    // ------------------------------------------------------------------
 
     @Override
     public boolean moveHero(Hero hero, Dungeon dungeon, int dRow, int dCol) {
         int newRow = hero.getRow() + dRow;
         int newCol = hero.getCol() + dCol;
-        if (!dungeon.isValidPosition(newRow, newCol)) return false;
+        if (!dungeon.canMove(hero.getRow(), hero.getCol(), newRow, newCol))
+            return false;
         hero.setPosition(newRow, newCol);
         dungeon.getRoom(newRow, newCol).markVisited();
         return true;
@@ -123,6 +185,10 @@ public class DungeonManager implements DungeonController {
     public Room getCurrentRoom(Hero hero, Dungeon dungeon) {
         return dungeon.getRoom(hero.getRow(), hero.getCol());
     }
+
+    // ------------------------------------------------------------------
+    // Enemy / item / trap helpers
+    // ------------------------------------------------------------------
 
     private EnemyType getBossForLevel(int level) {
         return switch (level) {
@@ -146,33 +212,22 @@ public class DungeonManager implements DungeonController {
 
     private EnemyType getRandomEnemyForLevel(int level) {
         return switch (level) {
-            case 1 -> {
-                EnemyType[] types = {EnemyType.GOBLIN, EnemyType.SKELETON};
-                yield types[random.nextInt(types.length)];
-            }
-            case 2 -> {
-                EnemyType[] types = {EnemyType.SKELETON, EnemyType.DARK_MAGE};
-                yield types[random.nextInt(types.length)];
-            }
-            case 3 -> {
-                EnemyType[] types = {EnemyType.GOBLIN, EnemyType.SKELETON, EnemyType.DARK_MAGE};
-                yield types[random.nextInt(types.length)];
-            }
-            case 4 -> {
-                EnemyType[] types = {EnemyType.KNIGHT, EnemyType.DARK_MAGE};
-                yield types[random.nextInt(types.length)];
-            }
-            default -> {
-                EnemyType[] types = {EnemyType.DEMON, EnemyType.WITCH, EnemyType.KNIGHT};
-                yield types[random.nextInt(types.length)];
-            }
+            case 1 -> pick(EnemyType.GOBLIN, EnemyType.SKELETON);
+            case 2 -> pick(EnemyType.SKELETON, EnemyType.DARK_MAGE);
+            case 3 -> pick(EnemyType.GOBLIN, EnemyType.SKELETON, EnemyType.DARK_MAGE);
+            case 4 -> pick(EnemyType.KNIGHT, EnemyType.DARK_MAGE);
+            default -> pick(EnemyType.DEMON, EnemyType.WITCH, EnemyType.KNIGHT);
         };
     }
 
-    private Item createRandomItem(int level) {
-        int roll  = random.nextInt(8);
-        Rarity rarity = rollRarity(level);
+    @SafeVarargs
+    private <T> T pick(T... options) {
+        return options[random.nextInt(options.length)];
+    }
 
+    private Item createRandomItem(int level) {
+        int roll = random.nextInt(8);
+        Rarity rarity = rollRarity(level);
         ItemType type = switch (roll) {
             case 0 -> ItemType.HEALTH_POTION;
             case 1 -> ItemType.SWORD;
@@ -184,11 +239,10 @@ public class DungeonManager implements DungeonController {
             default -> ItemType.MANA_POTION;
         };
 
-        // Unique item duplicate/upgrade logic
         if (UNIQUE_ITEMS.contains(type)) {
             Rarity existing = foundUniqueItems.get(type);
             if (existing != null && !rarity.isHigherThan(existing)) {
-                type = random.nextBoolean() ? ItemType.HEALTH_POTION : ItemType.MANA_POTION;
+                type   = random.nextBoolean() ? ItemType.HEALTH_POTION : ItemType.MANA_POTION;
                 rarity = Rarity.COMMON;
             } else {
                 foundUniqueItems.put(type, rarity);
@@ -196,9 +250,9 @@ public class DungeonManager implements DungeonController {
         }
 
         int baseValue = switch (type) {
-            case HEALTH_POTION   -> 30 + level * 10;
-            case MANA_POTION     -> 20 + level * 8;
-            default              -> 5 + (level * 3);
+            case HEALTH_POTION -> 30 + level * 10;
+            case MANA_POTION   -> 20 + level * 8;
+            default            -> 5  + level * 3;
         };
         int value = (int) Math.round(baseValue * rarity.getMultiplier());
 
@@ -212,33 +266,24 @@ public class DungeonManager implements DungeonController {
             case STRENGTH_POTION -> "Strength Potion";
             case MANA_POTION     -> "Mana Potion";
         };
-
         String name = rarity == Rarity.COMMON ? baseName
                 : rarity.getDisplayName() + " " + baseName;
 
         return new Item(UUID.randomUUID().toString(), name, type, value, rarity);
     }
 
-    /**
-     * Rolls a rarity based on dungeon level probability tables.
-     * Higher levels have significantly better chances of rare/epic/legendary items.
-     *
-     * @param level dungeon level 1–5
-     * @return the rolled Rarity
-     */
     private Rarity rollRarity(int level) {
-        // Thresholds: [legendary, epic, rare] cumulative from top
-        int[] thresholds = switch (level) {
-            case 1 -> new int[]{0,   2,  15};   // 0% leg, 2% epic, 15% rare
-            case 2 -> new int[]{1,   8,  30};   // 1% leg, 7% epic, 22% rare
-            case 3 -> new int[]{3,  15,  45};   // 3% leg, 12% epic, 30% rare
-            case 4 -> new int[]{7,  25,  60};   // 7% leg, 18% epic, 35% rare
-            default -> new int[]{12, 40,  75};  // 12% leg, 28% epic, 35% rare
+        int[] t = switch (level) {
+            case 1  -> new int[]{ 0,  2, 15};
+            case 2  -> new int[]{ 1,  8, 30};
+            case 3  -> new int[]{ 3, 15, 45};
+            case 4  -> new int[]{ 7, 25, 60};
+            default -> new int[]{12, 40, 75};
         };
         int roll = random.nextInt(100);
-        if (roll < thresholds[0]) return Rarity.LEGENDARY;
-        if (roll < thresholds[1]) return Rarity.EPIC;
-        if (roll < thresholds[2]) return Rarity.RARE;
+        if (roll < t[0]) return Rarity.LEGENDARY;
+        if (roll < t[1]) return Rarity.EPIC;
+        if (roll < t[2]) return Rarity.RARE;
         return Rarity.COMMON;
     }
 }

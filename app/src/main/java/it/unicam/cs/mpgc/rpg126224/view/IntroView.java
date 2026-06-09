@@ -48,6 +48,7 @@ public class IntroView {
     public IntroView(Runnable onFinished) {
         root = new StackPane();
         root.setStyle("-fx-background-color: #000000;");
+        root.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
         // Build text block
         VBox textBox = new VBox(14);

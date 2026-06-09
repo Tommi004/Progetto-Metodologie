@@ -117,29 +117,30 @@ public class DungeonMapView implements ViewRefreshable {
             String fogColor,
             String unvisitedBg,
             String unvisitedStroke,
-            String textureColor
+            String textureColor,
+            String wallColor
     ) {
         static CanvasTheme forLevel(int level) {
             return switch (level) {
                 case 1 -> new CanvasTheme(  // Stone Dungeon — grey
                         "#08080e", "#1a1a2e", "#000008",
-                        "#0a0a12", "#141428", "#2a2a44"
+                        "#0a0a12", "#141428", "#2a2a44", "#4a4a5a"
                 );
                 case 2 -> new CanvasTheme(  // Cursed Crypt — dark green
                         "#020e04", "#0a2a0e", "#00050000",
-                        "#030f05", "#0a1e0c", "#103a14"
+                        "#030f05", "#0a1e0c", "#103a14", "#2a5a2a"
                 );
                 case 3 -> new CanvasTheme(  // Dragon's Lair — dark red/orange
                         "#0e0402", "#2e0a04", "#08000000",
-                        "#100403", "#2a0804", "#3a1206"
+                        "#100403", "#2a0804", "#3a1206", "#6a1a08"
                 );
                 case 4 -> new CanvasTheme(  // Abyssal Depths — deep blue
                         "#01040e", "#051228", "#00000800",
-                        "#020510", "#081830", "#0a2040"
+                        "#020510", "#081830", "#0a2040", "#1a4a7a"
                 );
                 default -> new CanvasTheme( // Infernal Realm — purple
                         "#080010", "#200840", "#05000800",
-                        "#090012", "#1a0830", "#2a1050"
+                        "#090012", "#1a0830", "#2a1050", "#5a1a8a"
                 );
             };
         }
@@ -166,7 +167,7 @@ public class DungeonMapView implements ViewRefreshable {
         drawBackgroundTexture(gc, level, theme);
 
         // Draw corridors first (below cells)
-        drawCorridors(gc, dungeon, hero, theme);
+        drawCorridors(gc, dungeon, theme);
 
         // Draw cells
         for (int r = 0; r < dungeon.getRows(); r++) {
@@ -178,6 +179,9 @@ public class DungeonMapView implements ViewRefreshable {
                 drawCell(gc, room, r, c, isHero, isReachable, hero, theme);
             }
         }
+
+        // Draw walls ON TOP of cells so they are never covered
+        drawAllWalls(gc, dungeon, theme);
 
         // Draw hero sprite on top
         drawHeroSprite(gc, hero);
@@ -261,33 +265,84 @@ public class DungeonMapView implements ViewRefreshable {
         }
     }
 
-    private void drawCorridors(GraphicsContext gc, Dungeon dungeon, Hero hero,
-                                CanvasTheme theme) {
+    private void drawCorridors(GraphicsContext gc, Dungeon dungeon, CanvasTheme theme) {
         for (int r = 0; r < dungeon.getRows(); r++) {
             for (int c = 0; c < dungeon.getCols(); c++) {
-                Room room = dungeon.getRoom(r, c);
-                if (!room.isVisited()) continue;
-
+                if (!dungeon.getRoom(r, c).isVisited()) continue;
                 double cx = PAD + c * STEP + CELL / 2.0;
                 double cy = PAD + r * STEP + CELL / 2.0;
-
-                int[][] dirs = {{0, 1}, {1, 0}};
-                for (int[] dir : dirs) {
-                    int nr = r + dir[0];
-                    int nc = c + dir[1];
-                    if (!dungeon.isValidPosition(nr, nc)) continue;
-                    Room neighbor = dungeon.getRoom(nr, nc);
-                    if (!neighbor.isVisited()) continue;
-
-                    double nx = PAD + nc * STEP + CELL / 2.0;
-                    double ny = PAD + nr * STEP + CELL / 2.0;
-
+                if (c + 1 < dungeon.getCols()
+                        && !dungeon.hasWallRight(r, c)
+                        && dungeon.getRoom(r, c + 1).isVisited()) {
+                    double nx = PAD + (c + 1) * STEP + CELL / 2.0;
                     gc.setStroke(Color.web(theme.corridorColor()));
                     gc.setLineWidth(GAP + 2);
-                    gc.strokeLine(cx, cy, nx, ny);
+                    gc.strokeLine(cx, cy, nx, cy);
+                }
+                if (r + 1 < dungeon.getRows()
+                        && !dungeon.hasWallDown(r, c)
+                        && dungeon.getRoom(r + 1, c).isVisited()) {
+                    double ny = PAD + (r + 1) * STEP + CELL / 2.0;
+                    gc.setStroke(Color.web(theme.corridorColor()));
+                    gc.setLineWidth(GAP + 2);
+                    gc.strokeLine(cx, cy, cx, ny);
                 }
             }
         }
+    }
+
+    /** Draws ALL walls on top of cells in a dedicated pass. */
+    private void drawAllWalls(GraphicsContext gc, Dungeon dungeon, CanvasTheme theme) {
+        for (int r = 0; r < dungeon.getRows(); r++) {
+            for (int c = 0; c < dungeon.getCols(); c++) {
+                if (!dungeon.getRoom(r, c).isVisited()) continue;
+                double x = PAD + c * STEP;
+                double y = PAD + r * STEP;
+                gc.setFill(Color.web(theme.wallColor()));
+                if (c + 1 < dungeon.getCols()
+                        && dungeon.hasWallRight(r, c)
+                        && dungeon.getRoom(r, c + 1).isVisited())
+                    gc.fillRect(x + CELL, y, GAP, CELL);
+                if (r + 1 < dungeon.getRows()
+                        && dungeon.hasWallDown(r, c)
+                        && dungeon.getRoom(r + 1, c).isVisited())
+                    gc.fillRect(x, y + CELL, CELL, GAP);
+            }
+        }
+    }
+
+    /**
+     * Returns the wall color as the brighter stroke color between two
+     * adjacent rooms, so walls inherit the glow of the more notable room.
+     */
+    private String brighterWallColor(Room a, Room b) {
+        return pickBrighter(getRoomStrokeColor(a), getRoomStrokeColor(b));
+    }
+
+    /** Returns the border/stroke color used for this room in drawVisitedCell. */
+    private String getRoomStrokeColor(Room room) {
+        return switch (room.getType()) {
+            case START    -> "#2a6a2a";
+            case EXIT     -> "#ffd700";
+            case TREASURE -> room.isCleared() ? "#2a2810" : "#5a4800";
+            case ENEMY    -> room.isCleared() ? "#1a3a1a" : "#5a1515";
+            case SHOP     -> room.isCleared() ? "#2a2810" : "#5a5000";
+            default       -> "#1c1c38";
+        };
+    }
+
+    /**
+     * Picks the brighter of two hex colors by comparing their average RGB.
+     */
+    private String pickBrighter(String hexA, String hexB) {
+        return brightness(hexA) >= brightness(hexB) ? hexA : hexB;
+    }
+
+    private int brightness(String hex) {
+        int r = Integer.parseInt(hex.substring(1, 3), 16);
+        int g = Integer.parseInt(hex.substring(3, 5), 16);
+        int b = Integer.parseInt(hex.substring(5, 7), 16);
+        return r + g + b;
     }
 
     // -------------------------------------------------------------------------
@@ -441,7 +496,7 @@ public class DungeonMapView implements ViewRefreshable {
                 else { icon = getEnemyIcon(room); color = "#ff4444"; size = 22; }
             }
             case TREASURE -> {
-                if (room.isCleared()) { icon = "·"; color = "#3a3820"; size = 14; }
+                if (room.isCleared()) { icon = "🔓"; color = "#806a20"; size = 20; }
                 else { icon = "💰"; color = "#ffd700"; size = 20; }
             }
             default -> { icon = "·"; color = "#2a2a50"; size = 12; }
