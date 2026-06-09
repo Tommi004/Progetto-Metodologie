@@ -24,6 +24,12 @@ combatti nemici, raccogli armi e affronta boss sempre più potenti.
 ```bash
 ./gradlew run
 ```
+---
+
+## 🎮 Come si gioca
+
+- **WASD** per muovere l'eroe nella mappa
+- **Mouse** per interagire con i pulsanti (attacca, usa pozioni, fuggi, ecc.)
 
 ---
 
