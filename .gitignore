@@ -13,3 +13,6 @@ app/bin/
 # Sistema operativo
 .DS_Store
 Thumbs.db
+
+# Save files
+app/save/*.json
