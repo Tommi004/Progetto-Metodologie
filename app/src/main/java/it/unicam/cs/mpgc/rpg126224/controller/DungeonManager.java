@@ -1,5 +1,6 @@
 package it.unicam.cs.mpgc.rpg126224.controller;
 
+import it.unicam.cs.mpgc.rpg126224.exception.InvalidMoveException;
 import it.unicam.cs.mpgc.rpg126224.model.*;
 import java.util.*;
 
@@ -172,6 +173,10 @@ public class DungeonManager implements DungeonController {
 
     @Override
     public boolean moveHero(Hero hero, Dungeon dungeon, int dRow, int dCol) {
+        if (Math.abs(dRow) > 1 || Math.abs(dCol) > 1 || (dRow != 0 && dCol != 0)) {
+            throw new InvalidMoveException(
+                    "Invalid move delta: (" + dRow + "," + dCol + ") — only cardinal single steps allowed.");
+        }
         int newRow = hero.getRow() + dRow;
         int newCol = hero.getCol() + dCol;
         if (!dungeon.canMove(hero.getRow(), hero.getCol(), newRow, newCol))

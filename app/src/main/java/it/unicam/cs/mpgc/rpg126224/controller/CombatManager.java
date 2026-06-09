@@ -1,5 +1,6 @@
 package it.unicam.cs.mpgc.rpg126224.controller;
 
+import it.unicam.cs.mpgc.rpg126224.exception.InsufficientManaException;
 import it.unicam.cs.mpgc.rpg126224.model.*;
 import java.util.Random;
 
@@ -79,6 +80,17 @@ public class CombatManager implements CombatController {
     private int calcHeroAttack(Hero hero) {
         int variance = random.nextInt(5) - 2;
         return Math.max(1, hero.getAttack() + variance);
+    }
+
+    /**
+     * Validates that the hero has enough mana for a Special attack.
+     * Throws {@link InsufficientManaException} when called programmatically
+     * with insufficient mana (the UI disables the button, so this acts as a safety net).
+     */
+    private void checkMana(Hero hero, int cost) {
+        if (hero.getCurrentMana() < cost) {
+            throw new InsufficientManaException(hero.getCurrentMana(), cost);
+        }
     }
 
     private int calcHeroSpecial(Hero hero) {

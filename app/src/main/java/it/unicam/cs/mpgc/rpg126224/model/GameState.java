@@ -152,7 +152,6 @@ public class GameState {
         clearedFloors.clear();
         for (int i = 1; i <= n; i++) clearedFloors.add(i);
     }
-    public void addStatDungeonsCleared(int n) { /* replaced by markFloorCleared */ }
 
     /**
      * Directly replaces the current dungeon (used by persistence layer).

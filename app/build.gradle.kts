@@ -10,6 +10,7 @@ repositories {
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    implementation("com.google.code.gson:gson:2.11.0")
 }
 
 java {

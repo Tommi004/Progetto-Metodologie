@@ -1,7 +1,7 @@
 package it.unicam.cs.mpgc.rpg126224.view;
 
 import it.unicam.cs.mpgc.rpg126224.controller.GameController;
-import it.unicam.cs.mpgc.rpg126224.persistence.JsonPersistenceManager;
+import it.unicam.cs.mpgc.rpg126224.persistence.FilePersistenceManager;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -30,7 +30,7 @@ public class MainApp extends Application {
     @Override
     public void start(Stage stage) {
         this.primaryStage = stage;
-        this.controller   = new GameController(new JsonPersistenceManager());
+        this.controller   = new GameController(new FilePersistenceManager());
         stage.setTitle("Level Up!");
         stage.setMinWidth(DEFAULT_W);
         stage.setMinHeight(DEFAULT_H);

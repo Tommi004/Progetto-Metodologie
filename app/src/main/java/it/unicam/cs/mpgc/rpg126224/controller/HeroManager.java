@@ -1,5 +1,6 @@
 package it.unicam.cs.mpgc.rpg126224.controller;
 
+import it.unicam.cs.mpgc.rpg126224.exception.ItemNotFoundException;
 import it.unicam.cs.mpgc.rpg126224.model.*;
 import java.util.UUID;
 
@@ -27,7 +28,7 @@ public class HeroManager implements HeroController {
                     }
                     return true;
                 })
-                .orElse(false);
+                .orElseThrow(() -> new ItemNotFoundException(itemId));
     }
 
     @Override
