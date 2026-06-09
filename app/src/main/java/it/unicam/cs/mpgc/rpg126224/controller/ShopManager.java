@@ -52,19 +52,19 @@ public class ShopManager implements ShopController {
 
         catalogue.add(new ShopItem(
                 new Item(UUID.randomUUID().toString(),
-                        rarity.getDisplayName() + " Sword",
+                        rarity == Rarity.COMMON ? "Sword" : rarity.getDisplayName() + " Sword",
                         ItemType.SWORD, (int)(baseValue * rarity.getMultiplier()), rarity),
                 (int)(eqCost * rarity.getMultiplier())));
 
         catalogue.add(new ShopItem(
                 new Item(UUID.randomUUID().toString(),
-                        rarity.getDisplayName() + " Armor",
+                        rarity == Rarity.COMMON ? "Armor" : rarity.getDisplayName() + " Armor",
                         ItemType.ARMOR, (int)((baseValue - 2) * rarity.getMultiplier()), rarity),
                 (int)(eqCost * rarity.getMultiplier())));
 
         catalogue.add(new ShopItem(
                 new Item(UUID.randomUUID().toString(),
-                        rarity.getDisplayName() + " Staff",
+                        rarity == Rarity.COMMON ? "Staff" : rarity.getDisplayName() + " Staff",
                         ItemType.STAFF, (int)(baseValue * rarity.getMultiplier()), rarity),
                 (int)(eqCost * rarity.getMultiplier())));
 

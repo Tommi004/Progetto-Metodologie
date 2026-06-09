@@ -117,4 +117,29 @@ class GameStateTest {
     void maxDungeonLevelIs5() {
         assertEquals(5, GameState.MAX_DUNGEON_LEVEL);
     }
+
+    @Test
+    @DisplayName("retreatLevel returns false on floor 1")
+    void retreatOnFloor1ReturnsFalse() {
+        assertFalse(state.retreatLevel(), "Cannot retreat from floor 1");
+    }
+
+    @Test
+    @DisplayName("retreatLevel after advance returns to previous floor")
+    void retreatAfterAdvance() {
+        DungeonManager dm = new DungeonManager();
+        state.advanceLevel(dm.generateDungeon(2));
+        assertEquals(2, state.getDungeonLevel());
+        assertTrue(state.retreatLevel());
+        assertEquals(1, state.getDungeonLevel());
+    }
+
+    @Test
+    @DisplayName("isOnPreviousLevel is true after retreat, false on new floor")
+    void isOnPreviousLevel() {
+        DungeonManager dm = new DungeonManager();
+        state.advanceLevel(dm.generateDungeon(2));  // floor 2, maxReached=2
+        state.retreatLevel();                        // back to floor 1
+        assertTrue(state.isOnPreviousLevel());
+    }
 }

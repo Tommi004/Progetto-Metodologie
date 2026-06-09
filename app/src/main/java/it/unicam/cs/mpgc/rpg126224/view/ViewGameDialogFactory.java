@@ -1,7 +1,9 @@
 package it.unicam.cs.mpgc.rpg126224.view;
 
+import it.unicam.cs.mpgc.rpg126224.model.Item;
 import it.unicam.cs.mpgc.rpg126224.model.RunStats;
 import it.unicam.cs.mpgc.rpg126224.model.TrapType;
+import java.util.List;
 import javafx.animation.FadeTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -104,7 +106,7 @@ public class ViewGameDialogFactory {
         infoBox.setMaxWidth(320);
         addCreditRow(infoBox, "Developer",  "Tommaso Leonardi",     "#e0e0ff");
         addCreditRow(infoBox, "Matricola",  "126224",               "#e0e0ff");
-        addCreditRow(infoBox, "Course",     "Metodologie di Programmazione", "#c0c0e0");
+        addCreditRow(infoBox, "Course",     "Metodologie di Prog.", "#c0c0e0");
         addCreditRow(infoBox, "University", "UNICAM — Camerino",    "#c0c0e0");
         addCreditRow(infoBox, "A.Y.",       "2025 / 2026",          "#c0c0e0");
 
@@ -114,17 +116,62 @@ public class ViewGameDialogFactory {
 
         Label techHeader = new Label("Built with");
         techHeader.setFont(Font.font(FONT_MONO, FontWeight.BOLD, 11));
-        techHeader.setTextFill(Color.web("#ffd700"));
+        techHeader.setTextFill(Color.web("#808090"));
 
         Label techLabel = new Label("Java 25  ·  JavaFX 24  ·  Gradle 8  ·  JUnit 5");
         techLabel.setFont(Font.font(FONT_MONO, 11));
-        techLabel.setTextFill(Color.web("#ffd700"));
+        techLabel.setTextFill(Color.web("#606070"));
 
         Button closeBtn = confirmButton("CLOSE", "#1e1e2e", "#a0a0c0");
         closeBtn.setOnAction(e -> dialog.close());
 
         showWithFade(dialog, 400, 420, "#0a0a14",
                 title, subtitle, sep1, infoBox, sep2, techHeader, techLabel, closeBtn);
+    }
+
+    /**
+     * Shows a dialog asking the player which offensive weapon to replace
+     * when the 2-slot limit is reached.
+     *
+     * <p>The player can choose one of the two current weapons to replace,
+     * or skip the pickup entirely.</p>
+     *
+     * @param newItem   the new weapon found
+     * @param current   the two weapons currently equipped
+     * @param onChoice  callback receiving the id of the weapon to replace,
+     *                  or {@code null} if the player chose to skip
+     */
+    public static void showWeaponSwapDialog(Item newItem, List<Item> current,
+                                            java.util.function.Consumer<String> onChoice) {
+        Stage dialog = buildBaseDialog("New Weapon Found!", 380, 340);
+
+        Label title = titleLabel("⚔  WEAPON FOUND", "#ffd700");
+        title.setEffect(glow("#ffd700", 14));
+
+        Label newLbl = new Label(newItem.getRarity().getDisplayName() + " " + newItem.getName());
+        newLbl.setFont(Font.font(FONT_MONO, FontWeight.BOLD, 13));
+        newLbl.setTextFill(Color.web(newItem.getRarity().getColor()));
+
+        Label question = new Label("Your weapon slots are full. Replace one?");
+        question.setFont(Font.font(FONT_MONO, 11));
+        question.setTextFill(Color.web("#a0a0c0"));
+
+        // Buttons for each current weapon
+        VBox btnBox = new VBox(8);
+        btnBox.setAlignment(Pos.CENTER);
+        for (Item w : current) {
+            String label = "Replace  " + w.getRarity().getDisplayName() + " " + w.getName();
+            Button btn = wideButton(label, "#1a1a2a", Color.web(w.getRarity().getColor()).toString().replace("0x","#").substring(0,7), "#2a2a3a");
+            btn.setOnAction(e -> { dialog.close(); onChoice.accept(w.getId()); });
+            btnBox.getChildren().add(btn);
+        }
+
+        Button skipBtn = wideButton("✖  Keep current weapons", "#1a0a0a", "#ff6060", "#2a1010");
+        skipBtn.setOnAction(e -> { dialog.close(); onChoice.accept(null); });
+        btnBox.getChildren().add(skipBtn);
+
+        showWithFade(dialog, 380, 340, "#0a0a14",
+                title, newLbl, question, btnBox);
     }
 
     /**

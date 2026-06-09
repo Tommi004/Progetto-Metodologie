@@ -66,6 +66,14 @@
                            -fx-font-family: Monospace; -fx-font-size: 14;
                            -fx-padding: 11 28; -fx-background-radius: 6; -fx-cursor: hand;"/>
 
+            <Button fx:id="backBtn"
+                    text="←   Back to Menu"
+                    onAction="#handleBack"
+                    style="-fx-background-color: transparent; -fx-text-fill: #606080;
+                           -fx-font-family: Monospace; -fx-font-size: 12;
+                           -fx-padding: 6 16; -fx-border-color: #303050;
+                           -fx-border-radius: 4; -fx-background-radius: 4; -fx-cursor: hand;"/>
+
         </VBox>
 
         <!-- Right: animated class preview -->

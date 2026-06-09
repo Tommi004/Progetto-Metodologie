@@ -86,9 +86,10 @@ class DungeonTest {
     @Test
     @DisplayName("Hero cannot move through a wall")
     void heroBlockedByWall() {
+        // Use a fresh Dungeon (all walls present by default) — not the maze-generated one
+        Dungeon freshDungeon = new Dungeon();
         Hero hero = new Hero("h1", "Test", HeroClass.WARRIOR);
-        // Wall between (0,0) and (1,0) is present by default
-        boolean moved = manager.moveHero(hero, dungeon, 1, 0);
+        boolean moved = manager.moveHero(hero, freshDungeon, 1, 0);
         assertFalse(moved, "Hero should not move through a wall");
         assertEquals(0, hero.getRow());
     }

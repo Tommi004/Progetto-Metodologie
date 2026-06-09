@@ -32,8 +32,8 @@ public class DungeonManager implements DungeonController {
             new java.util.EnumMap<>(ItemType.class);
 
     private static final Set<ItemType> UNIQUE_ITEMS = EnumSet.of(
-            ItemType.SWORD, ItemType.BOW, ItemType.STAFF,
-            ItemType.ARMOR, ItemType.AMULET, ItemType.STRENGTH_POTION
+            ItemType.SWORD, ItemType.SPEAR, ItemType.BOW, ItemType.CROSSBOW,
+            ItemType.STAFF, ItemType.AMULET, ItemType.ARMOR, ItemType.HELMET
     );
 
     @Override public void resetUniqueItems()              { foundUniqueItems.clear(); }
@@ -226,20 +226,29 @@ public class DungeonManager implements DungeonController {
     }
 
     private Item createRandomItem(int level) {
-        int roll = random.nextInt(8);
+        int roll = random.nextInt(11);
         Rarity rarity = rollRarity(level);
         ItemType type = switch (roll) {
-            case 0 -> ItemType.HEALTH_POTION;
-            case 1 -> ItemType.SWORD;
-            case 2 -> ItemType.BOW;
-            case 3 -> ItemType.STAFF;
-            case 4 -> ItemType.ARMOR;
-            case 5 -> ItemType.AMULET;
-            case 6 -> ItemType.STRENGTH_POTION;
+            case 0  -> ItemType.HEALTH_POTION;
+            case 1  -> ItemType.SWORD;
+            case 2  -> ItemType.SPEAR;
+            case 3  -> ItemType.BOW;
+            case 4  -> ItemType.CROSSBOW;
+            case 5  -> ItemType.STAFF;
+            case 6  -> ItemType.AMULET;
+            case 7  -> ItemType.ARMOR;
+            case 8  -> ItemType.HELMET;
+            case 9  -> ItemType.STRENGTH_POTION;
             default -> ItemType.MANA_POTION;
         };
 
-        if (UNIQUE_ITEMS.contains(type)) {
+        // Potions are always COMMON — rarity only applies to equipment
+        boolean isPotion = !UNIQUE_ITEMS.contains(type);
+
+        if (isPotion) {
+            rarity = Rarity.COMMON;
+        } else {
+            // Equipment: enforce unique-item rule (only upgrade if higher rarity)
             Rarity existing = foundUniqueItems.get(type);
             if (existing != null && !rarity.isHigherThan(existing)) {
                 type   = random.nextBoolean() ? ItemType.HEALTH_POTION : ItemType.MANA_POTION;
@@ -250,19 +259,22 @@ public class DungeonManager implements DungeonController {
         }
 
         int baseValue = switch (type) {
-            case HEALTH_POTION -> 30 + level * 10;
-            case MANA_POTION   -> 20 + level * 8;
-            default            -> 5  + level * 3;
+            case HEALTH_POTION   -> 30 + level * 10;
+            case MANA_POTION     -> 20 + level * 8;
+            default              -> 5  + level * 3;
         };
         int value = (int) Math.round(baseValue * rarity.getMultiplier());
 
         String baseName = switch (type) {
+            case SWORD           -> "Sword";
+            case SPEAR           -> "Spear";
+            case BOW             -> "Bow";
+            case CROSSBOW        -> "Crossbow";
+            case STAFF           -> "Staff";
+            case AMULET          -> "Amulet";
+            case ARMOR           -> "Armor";
+            case HELMET          -> "Helmet";
             case HEALTH_POTION   -> "Health Potion";
-            case SWORD           -> "Iron Sword";
-            case BOW             -> "Elven Bow";
-            case STAFF           -> "Magic Staff";
-            case ARMOR           -> "Steel Armor";
-            case AMULET          -> "Ancient Amulet";
             case STRENGTH_POTION -> "Strength Potion";
             case MANA_POTION     -> "Mana Potion";
         };

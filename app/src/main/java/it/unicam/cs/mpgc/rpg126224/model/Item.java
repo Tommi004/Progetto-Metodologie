@@ -47,12 +47,7 @@ public class Item {
      *
      * @return {@code true} for stackable consumables
      */
-    public boolean isStackable() {
-        return switch (type) {
-            case HEALTH_POTION, MANA_POTION, STRENGTH_POTION -> true;
-            default -> false;
-        };
-    }
+    public boolean isStackable() { return type.isStackable(); }
 
     /**
      * Increments the stack count by one.

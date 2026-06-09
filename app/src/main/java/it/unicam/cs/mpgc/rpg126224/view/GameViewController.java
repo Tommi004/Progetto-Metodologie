@@ -83,6 +83,16 @@ public class GameViewController implements ViewRefreshable {
 
     private void handleMove(int dRow, int dCol) {
         if (gameController.getCurrentState().isGameOver()) return;
+
+        // Check if hero is at (0,0) and trying to move up or left — retreat to previous floor
+        Hero hero = gameController.getHero();
+        if (hero.getRow() == 0 && hero.getCol() == 0
+                && (dRow == -1 || dCol == -1)
+                && gameController.canRetreat()) {
+            handleRetreat();
+            return;
+        }
+
         if (!gameController.moveHero(dRow, dCol)) {
             showMessage("⛔ Can't move there.");
             return;
@@ -90,6 +100,13 @@ public class GameViewController implements ViewRefreshable {
         showMessage("");
         refresh();
         handleRoomEntry();
+    }
+
+    /**
+     * Animates a fade-out/fade-in transition and retreats to the previous floor.
+     */
+    private void handleRetreat() {
+        animateLevelTransition(gameController::goToPreviousLevel);
     }
 
     private void handleRoomEntry() {
@@ -119,9 +136,17 @@ public class GameViewController implements ViewRefreshable {
 
     private void handleTreasure(Room room) {
         if (room.getItems().isEmpty()) return;
-        List<Item> found = room.getItems();
-        gameController.collectRoomItems();
+        List<Item> found = new java.util.ArrayList<>(room.getItems());
+        List<Item> needsSwap = gameController.collectRoomItems();
         new TreasureView(found).show();
+        // Handle weapons that need a swap decision
+        for (Item newWeapon : needsSwap) {
+            List<Item> current = gameController.getOffensiveWeapons();
+            ViewGameDialogFactory.showWeaponSwapDialog(newWeapon, current, chosenId -> {
+                gameController.swapOffensiveWeapon(chosenId, newWeapon, true);
+                refresh();
+            });
+        }
         refresh();
     }
 
@@ -145,6 +170,7 @@ public class GameViewController implements ViewRefreshable {
     }
 
     private void handleExitAfterCombat() {
+        boolean isReadvance = gameController.getCurrentState().isOnPreviousLevel();
         if (!gameController.checkExitCondition()) return;
         if (gameController.isVictory()) {
             RunStats stats = gameController.buildRunStats();
@@ -152,22 +178,55 @@ public class GameViewController implements ViewRefreshable {
                     ViewGameDialogFactory.showVictory(stats, onReturnToMenu));
         } else {
             int level = gameController.getDungeonLevel();
-            Platform.runLater(() -> {
-                ViewGameDialogFactory.showLevelAdvance(level);
-                refresh();
-            });
+            if (isReadvance) {
+                Platform.runLater(() -> animateLevelTransition(null));
+            } else {
+                Platform.runLater(() -> {
+                    ViewGameDialogFactory.showLevelAdvance(level);
+                    refresh();
+                });
+            }
         }
     }
 
     private void handleExitCheck() {
+        boolean isReadvance = gameController.getCurrentState().isOnPreviousLevel();
         if (!gameController.checkExitCondition()) return;
         if (gameController.isVictory()) {
             RunStats stats = gameController.buildRunStats();
             ViewGameDialogFactory.showVictory(stats, onReturnToMenu);
         } else {
-            ViewGameDialogFactory.showLevelAdvance(gameController.getDungeonLevel());
-            refresh();
+            if (isReadvance) {
+                animateLevelTransition(null);
+            } else {
+                ViewGameDialogFactory.showLevelAdvance(gameController.getDungeonLevel());
+                refresh();
+            }
         }
+    }
+
+    /**
+     * Fades the map out, optionally runs a callback (e.g. level change),
+     * then fades back in and refreshes.
+     */
+    private void animateLevelTransition(Runnable onMidpoint) {
+        javafx.scene.Parent mapRoot = mapView.getRoot();
+        javafx.animation.FadeTransition fadeOut =
+                new javafx.animation.FadeTransition(
+                        javafx.util.Duration.millis(400), mapRoot);
+        fadeOut.setFromValue(1.0);
+        fadeOut.setToValue(0.0);
+        fadeOut.setOnFinished(e -> {
+            if (onMidpoint != null) onMidpoint.run();
+            refresh();
+            javafx.animation.FadeTransition fadeIn =
+                    new javafx.animation.FadeTransition(
+                            javafx.util.Duration.millis(400), mapRoot);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+            fadeIn.play();
+        });
+        fadeOut.play();
     }
 
     // -------------------------------------------------------------------------

@@ -7,9 +7,9 @@ package it.unicam.cs.mpgc.rpg126224.model;
 public enum HeroClass {
 
     //                   hp   atk  def  mag  mana
-    WARRIOR(120, 18, 8,  4,  40),
-    MAGE(    70,  6, 4, 20,  80),
-    ARCHER(  90, 14, 6,  8,  55);
+    WARRIOR(110, 13, 10,  2,  30),
+    MAGE(    80,  5,  3, 15, 100),
+    ARCHER(  95, 11,  6,  8,  60);
 
     private final int baseHp;
     private final int baseAttack;

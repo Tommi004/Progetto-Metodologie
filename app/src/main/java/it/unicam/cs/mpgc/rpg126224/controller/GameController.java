@@ -22,14 +22,7 @@ public class GameController {
 
     private GameState currentState;
 
-    // ------------------------------------------------------------------
-    // Run-statistics accumulators (reset on startNewGame / loadGame)
-    // ------------------------------------------------------------------
-    private int    statEnemiesDefeated  = 0;
-    private int    statDamageDealt      = 0;
-    private int    statDamageTaken      = 0;
-    private int    statDungeonsCleared  = 0;
-    private String statCauseOfDeath     = null;
+
 
     public GameController(PersistenceManager persistenceManager) {
         this.persistenceManager = persistenceManager;
@@ -63,10 +56,10 @@ public class GameController {
 
     public void startNewGame(String heroName, HeroClass heroClass) {
         dungeonController.resetUniqueItems();
-        resetRunStats();
         Hero hero = heroController.createHero(heroName, heroClass);
         Dungeon dungeon = dungeonController.generateDungeon(1);
         currentState = new GameState(hero, dungeon);
+        // Stats start at zero — already default in GameState
     }
 
     public boolean saveGame() {
@@ -79,9 +72,8 @@ public class GameController {
         Optional<GameState> loaded = persistenceManager.loadGame();
         if (loaded.isEmpty()) return false;
         currentState = loaded.get();
-        resetRunStats();
+        // Stats are restored from the save file — do NOT reset them
 
-        // Re-register all existing items so the unique-item tracker is in sync
         dungeonController.resetUniqueItems();
         currentState.getHero().getInventory()
                 .forEach(dungeonController::registerExistingItem);
@@ -90,7 +82,6 @@ public class GameController {
             for (int c = 0; c < d.getCols(); c++)
                 d.getRoom(r, c).getItems()
                         .forEach(dungeonController::registerExistingItem);
-
         return true;
     }
 
@@ -137,12 +128,11 @@ public class GameController {
                 currentState.getHero(), enemy, action, consumeSelectedPotionId());
 
         // Accumulate stats
-        statDamageDealt += result.heroDamageDealt();
-        statDamageTaken += result.enemyDamageDealt();
+        currentState.addStatDamageDealt(result.heroDamageDealt());
+        currentState.addStatDamageTaken(result.enemyDamageDealt());
 
         if (result.heroDefeated()) {
-            statCauseOfDeath = "Defeated by " + enemy.getName()
-                    + " on floor " + currentState.getDungeonLevel();
+            currentState.setStatCauseOfDeath("Defeated by " + enemy.getName() + " on floor " + currentState.getDungeonLevel());
             currentState.setGameOver();
         }
         return result;
@@ -156,19 +146,12 @@ public class GameController {
                 .ifPresent(e -> currentState.getHero().addGold(e.getType().getGoldReward()));
         boolean removed = room.removeEnemy(enemyId);
         if (removed) {
-            statEnemiesDefeated++;
+            currentState.addStatEnemiesDefeated(1);
         }
         if (room.allEnemiesDefeated()) {
             room.markCleared();
         }
     }
-
-    /**
-     * Attempts to purchase a shop item for the hero.
-     *
-     * @param shopItem the shop entry to buy
-     * @return {@code true} if the hero had enough gold and the item was added
-     */
 
     /**
      * Replaces the defeated Demon Lord with a Demon Soul in the current room.
@@ -217,12 +200,11 @@ public class GameController {
 
         // Accumulate trap damage in run stats
         int hpLost = hpBefore - hero.getCurrentHp();
-        if (hpLost > 0) statDamageTaken += hpLost;
+        if (hpLost > 0) currentState.addStatDamageTaken(hpLost);
 
         // Check if trap killed the hero
         if (!hero.isAlive()) {
-            statCauseOfDeath = "Killed by a " + trap.getDisplayName()
-                    + " on floor " + currentState.getDungeonLevel();
+            currentState.setStatCauseOfDeath("Killed by a " + trap.getDisplayName() + " on floor " + currentState.getDungeonLevel());
             currentState.setGameOver();
         }
 
@@ -246,26 +228,95 @@ public class GameController {
     // Item handling
     // ------------------------------------------------------------------
 
-    public void collectRoomItems() {
+
+    /**
+     * Collects all items from the current room into the hero's inventory.
+     *
+     * <p>Returns a list of items that could NOT be automatically picked up
+     * because adding them would exceed the 2-slot offensive weapon limit.
+     * The view is responsible for showing the weapon-swap dialog for these.</p>
+     *
+     * @return items that require a swap decision from the player
+     */
+    public List<Item> collectRoomItems() {
         Room room = getCurrentRoom();
-        List<Item> items = room.getItems();
+        List<Item> items = new java.util.ArrayList<>(room.getItems());
         Hero hero = currentState.getHero();
+        List<Item> needsSwap = new java.util.ArrayList<>();
+
         for (Item item : items) {
-            if (isUniqueItemType(item.getType())) {
+            if (item.getType().isOffensiveWeapon()) {
+                List<Item> current = getOffensiveWeapons();
+                if (current.size() < 2) {
+                    // Slot available — pick up directly
+                    heroController.pickUpItem(hero, item);
+                    room.removeItem(item.getId());
+                } else {
+                    // Check if same type already owned at lower rarity — auto-replace
+                    java.util.Optional<Item> sameType = current.stream()
+                            .filter(w -> w.getType() == item.getType()
+                                    && item.getRarity().isHigherThan(w.getRarity()))
+                            .findFirst();
+                    if (sameType.isPresent()) {
+                        hero.removeItem(sameType.get().getId());
+                        heroController.pickUpItem(hero, item);
+                        room.removeItem(item.getId());
+                    } else {
+                        // Player must choose which weapon to replace (or skip)
+                        needsSwap.add(item);
+                    }
+                }
+            } else if (isUniqueEquipment(item.getType())) {
+                // Non-offensive unique slots: replace if same type and higher rarity
                 hero.getInventory().stream()
-                        .filter(i -> i.getType() == item.getType())
+                        .filter(i -> i.getType() == item.getType()
+                                && item.getRarity().isHigherThan(i.getRarity()))
                         .findFirst()
                         .ifPresent(old -> hero.removeItem(old.getId()));
+                // Only add if slot is free or was just freed
+                boolean slotFree = hero.getInventory().stream()
+                        .noneMatch(i -> i.getType() == item.getType());
+                if (slotFree) {
+                    heroController.pickUpItem(hero, item);
+                    room.removeItem(item.getId());
+                }
+            } else {
+                // Consumables — always pick up
+                heroController.pickUpItem(hero, item);
+                room.removeItem(item.getId());
             }
-            heroController.pickUpItem(hero, item);
-            room.removeItem(item.getId());
         }
-        if (!items.isEmpty()) room.markCleared();
+        if (room.getItems().isEmpty() && !items.isEmpty()) room.markCleared();
+        return needsSwap;
     }
 
-    private boolean isUniqueItemType(ItemType type) {
+    /** Returns all offensive weapons currently in the hero's inventory. */
+    public List<Item> getOffensiveWeapons() {
+        return currentState.getHero().getInventory().stream()
+                .filter(i -> i.getType().isOffensiveWeapon())
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Swaps an existing offensive weapon with a new one from the room.
+     * Called by the view when the player chooses which weapon to replace.
+     *
+     * @param existingId id of the weapon to remove (null = skip pickup)
+     * @param newItem    the new weapon to add
+     * @param roomItem   whether to remove this item from the current room
+     */
+    public void swapOffensiveWeapon(String existingId, Item newItem, boolean roomItem) {
+        if (existingId == null) return; // player chose to skip
+        Hero hero = currentState.getHero();
+        hero.removeItem(existingId);
+        heroController.pickUpItem(hero, newItem);
+        if (roomItem) getCurrentRoom().removeItem(newItem.getId());
+        if (getCurrentRoom().getItems().isEmpty()) getCurrentRoom().markCleared();
+    }
+
+    private boolean isUniqueEquipment(ItemType type) {
         return switch (type) {
-            case SWORD, BOW, STAFF, ARMOR, AMULET, STRENGTH_POTION -> true;
+            case STAFF, AMULET, ARMOR, HELMET -> true;
             default -> false;
         };
     }
@@ -284,10 +335,10 @@ public class GameController {
         if (!room.allEnemiesDefeated()) return false;
 
         if (currentState.getDungeonLevel() < GameState.MAX_DUNGEON_LEVEL) {
-            advanceToNextLevel();   // statDungeonsCleared incremented inside
+            advanceToNextLevel();
             return true;
         } else {
-            statDungeonsCleared++;  // last floor: count here before setVictory
+            currentState.markFloorCleared(currentState.getDungeonLevel());
             currentState.setVictory();
             return true;
         }
@@ -297,11 +348,35 @@ public class GameController {
         return currentState != null && currentState.isVictory();
     }
 
+    /**
+     * Returns to the previous dungeon floor if one exists in the history.
+     * The hero is placed at (SIZE-1, SIZE-1) — the exit of that floor.
+     *
+     * @return {@code true} if the retreat succeeded; {@code false} if on floor 1
+     */
+    public boolean goToPreviousLevel() {
+        return currentState.retreatLevel();
+    }
+
+    /** Returns {@code true} if the hero can retreat (not on floor 1). */
+    public boolean canRetreat() {
+        return currentState != null
+                && currentState.getDungeonLevel() > 1
+                && !currentState.getDungeonHistory().isEmpty();
+    }
+
     private void advanceToNextLevel() {
-        statDungeonsCleared++;
-        int nextLevel = currentState.getDungeonLevel() + 1;
-        Dungeon newDungeon = dungeonController.generateDungeon(nextLevel);
-        currentState.advanceLevel(newDungeon);
+        // Mark only if this is a first-time advance (not a re-advance from retreat)
+        if (!currentState.isOnPreviousLevel()) {
+            currentState.markFloorCleared(currentState.getDungeonLevel());
+        }
+        if (currentState.isOnPreviousLevel()) {
+            currentState.advanceToExistingLevel();
+        } else {
+            int nextLevel = currentState.getDungeonLevel() + 1;
+            Dungeon newDungeon = dungeonController.generateDungeon(nextLevel);
+            currentState.advanceLevel(newDungeon);
+        }
     }
 
     /**
@@ -309,18 +384,68 @@ public class GameController {
      *
      * @return list of items available for purchase
      */
-    public java.util.List<it.unicam.cs.mpgc.rpg126224.model.ShopItem> getShopCatalogue() {
+    public List<ShopItem> getShopCatalogue() {
         return shopController.generateCatalogue(currentState.getDungeonLevel());
     }
 
     /**
-     * Attempts to purchase a shop item for the hero.
+     * Attempts to purchase a shop item for the hero, applying the same
+     * slot rules as collectRoomItems (offensive weapon 2-slot limit,
+     * unique equipment, rarità superiore only).
      *
      * @param shopItem the shop entry to buy
-     * @return {@code true} if the hero had enough gold and the item was added
+     * @return {@code null} if purchase failed (insufficient gold);
+     *         an empty list if purchased successfully with no swap needed;
+     *         a list with the new item if a weapon-swap dialog is required
      */
-    public boolean buyShopItem(it.unicam.cs.mpgc.rpg126224.model.ShopItem shopItem) {
-        return shopController.buyItem(currentState.getHero(), shopItem);
+    public List<Item> buyShopItem(ShopItem shopItem) {
+        Hero hero = currentState.getHero();
+        if (!hero.spendGold(shopItem.goldCost())) return null;
+
+        Item item = shopItem.item();
+
+        if (item.getType().isOffensiveWeapon()) {
+            List<Item> current = getOffensiveWeapons();
+            if (current.size() < 2) {
+                heroController.pickUpItem(hero, item);
+            } else {
+                // Check same type at lower rarity — auto-replace
+                java.util.Optional<Item> sameType = current.stream()
+                        .filter(w -> w.getType() == item.getType()
+                                && item.getRarity().isHigherThan(w.getRarity()))
+                        .findFirst();
+                if (sameType.isPresent()) {
+                    hero.removeItem(sameType.get().getId());
+                    heroController.pickUpItem(hero, item);
+                } else if (current.stream().anyMatch(w -> w.getType() == item.getType())) {
+                    // Same type same/lower rarity — refund and reject
+                    hero.addGold(shopItem.goldCost());
+                    return null;
+                } else {
+                    // Different types, slots full — need swap dialog
+                    return java.util.List.of(item);
+                }
+            }
+        } else if (isUniqueEquipment(item.getType())) {
+            java.util.Optional<Item> existing = hero.getInventory().stream()
+                    .filter(i -> i.getType() == item.getType())
+                    .findFirst();
+            if (existing.isPresent()) {
+                if (item.getRarity().isHigherThan(existing.get().getRarity())) {
+                    hero.removeItem(existing.get().getId());
+                    heroController.pickUpItem(hero, item);
+                } else {
+                    // Same or lower rarity — refund and reject
+                    hero.addGold(shopItem.goldCost());
+                    return null;
+                }
+            } else {
+                heroController.pickUpItem(hero, item);
+            }
+        } else {
+            heroController.pickUpItem(hero, item);
+        }
+        return java.util.List.of();
     }
 
     /**
@@ -332,20 +457,12 @@ public class GameController {
     public RunStats buildRunStats() {
         int level = currentState != null ? currentState.getHero().getLevel() : 1;
         return new RunStats(
-                statEnemiesDefeated,
-                statDamageDealt,
-                statDamageTaken,
-                statDungeonsCleared,
+                currentState.getStatEnemiesDefeated(),
+                currentState.getStatDamageDealt(),
+                currentState.getStatDamageTaken(),
+                currentState.getStatDungeonsCleared(),
                 level,
-                statCauseOfDeath
+                currentState.getStatCauseOfDeath()
         );
-    }
-
-    private void resetRunStats() {
-        statEnemiesDefeated = 0;
-        statDamageDealt     = 0;
-        statDamageTaken     = 0;
-        statDungeonsCleared = 0;
-        statCauseOfDeath    = null;
     }
 }

@@ -61,7 +61,7 @@ public class MainApp extends Application {
 
     private void showCharacterCreation() {
         CharacterCreationView creation =
-                new CharacterCreationView(controller, this::showIntro);
+                new CharacterCreationView(controller, this::showIntro, this::showMainMenu);
         setScene(creation.getRoot());
     }
 

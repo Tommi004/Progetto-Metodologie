@@ -1,8 +1,6 @@
 package it.unicam.cs.mpgc.rpg126224.persistence;
 
 import it.unicam.cs.mpgc.rpg126224.model.*;
-import it.unicam.cs.mpgc.rpg126224.model.Rarity;
-import it.unicam.cs.mpgc.rpg126224.model.TrapType;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
@@ -35,8 +33,27 @@ public class JsonPersistenceManager implements PersistenceManager {
             sb.append("heroRow=").append(hero.getRow()).append("\n");
             sb.append("heroCol=").append(hero.getCol()).append("\n");
             sb.append("dungeonLevel=").append(state.getDungeonLevel()).append("\n");
+            sb.append("maxLevelReached=").append(state.getMaxLevelReached()).append("\n");
             sb.append("gameOver=").append(state.isGameOver()).append("\n");
             sb.append("victory=").append(state.isVictory()).append("\n");
+            sb.append("statEnemiesDefeated=").append(state.getStatEnemiesDefeated()).append("\n");
+            sb.append("statDamageDealt=").append(state.getStatDamageDealt()).append("\n");
+            sb.append("statDamageTaken=").append(state.getStatDamageTaken()).append("\n");
+            sb.append("statDungeonsCleared=").append(state.getStatDungeonsCleared()).append("\n");
+
+            // Save dungeon history (previous floors)
+            List<Dungeon> history = state.getDungeonHistory();
+            sb.append("historySize=").append(history.size()).append("\n");
+            for (int hi = 0; hi < history.size(); hi++) {
+                serializeDungeon(sb, history.get(hi), "hist_" + hi + "_");
+            }
+
+            // Save future history (already-visited floors above current)
+            List<Dungeon> future = state.getFutureHistory();
+            sb.append("futureSize=").append(future.size()).append("\n");
+            for (int fi = 0; fi < future.size(); fi++) {
+                serializeDungeon(sb, future.get(fi), "future_" + fi + "_");
+            }
             List<Item> inv = hero.getInventory();
             sb.append("inventorySize=").append(inv.size()).append("\n");
             for (int i = 0; i < inv.size(); i++) {
@@ -48,54 +65,56 @@ public class JsonPersistenceManager implements PersistenceManager {
                 sb.append("inv_").append(i).append("_rarity=").append(item.getRarity().name()).append("\n");
                 sb.append("inv_").append(i).append("_quantity=").append(item.getQuantity()).append("\n");
             }
-            sb.append("dungeonRows=").append(dungeon.getRows()).append("\n");
-            sb.append("dungeonCols=").append(dungeon.getCols()).append("\n");
-
-            // Save wall matrices
-            for (int r = 0; r < dungeon.getRows(); r++) {
-                for (int c = 0; c < dungeon.getCols(); c++) {
-                    sb.append("wr_").append(r).append("_").append(c)
-                      .append("=").append(dungeon.hasWallRight(r, c)).append("\n");
-                    sb.append("wd_").append(r).append("_").append(c)
-                      .append("=").append(dungeon.hasWallDown(r, c)).append("\n");
-                }
-            }
-
-            for (int r = 0; r < dungeon.getRows(); r++) {
-                for (int c = 0; c < dungeon.getCols(); c++) {
-                    Room room = dungeon.getRoom(r, c);
-                    String prefix = "room_" + r + "_" + c + "_";
-                    sb.append(prefix).append("type=").append(room.getType().name()).append("\n");
-                    sb.append(prefix).append("visited=").append(room.isVisited()).append("\n");
-                    sb.append(prefix).append("cleared=").append(room.isCleared()).append("\n");
-                    if (room.hasTrap()) {
-                        sb.append(prefix).append("trap=").append(room.getTrap().name()).append("\n");
-                    }
-                    List<Enemy> enemies = room.getEnemies();
-                    sb.append(prefix).append("enemyCount=").append(enemies.size()).append("\n");
-                    for (int i = 0; i < enemies.size(); i++) {
-                        Enemy e = enemies.get(i);
-                        String ep = prefix + "enemy_" + i + "_";
-                        sb.append(ep).append("id=").append(e.getId()).append("\n");
-                        sb.append(ep).append("type=").append(e.getType().name()).append("\n");
-                        sb.append(ep).append("hp=").append(e.getCurrentHp()).append("\n");
-                    }
-                    List<Item> items = room.getItems();
-                    sb.append(prefix).append("itemCount=").append(items.size()).append("\n");
-                    for (int i = 0; i < items.size(); i++) {
-                        Item item = items.get(i);
-                        String ip = prefix + "item_" + i + "_";
-                        sb.append(ip).append("id=").append(item.getId()).append("\n");
-                        sb.append(ip).append("name=").append(item.getName()).append("\n");
-                        sb.append(ip).append("type=").append(item.getType().name()).append("\n");
-                        sb.append(ip).append("value=").append(item.getValue()).append("\n");
-                        sb.append(ip).append("rarity=").append(item.getRarity().name()).append("\n");
-                    }
-                }
-            }
+            serializeDungeon(sb, dungeon, "");
             Files.writeString(Paths.get(SAVE_FILE), sb.toString());
         } catch (IOException e) {
             System.err.println("Failed to save game: " + e.getMessage());
+        }
+    }
+
+    /** Serializes a dungeon to the save string with the given key prefix. */
+    private void serializeDungeon(StringBuilder sb, Dungeon dungeon, String pfx) {
+        sb.append(pfx).append("dungeonRows=").append(dungeon.getRows()).append("\n");
+        sb.append(pfx).append("dungeonCols=").append(dungeon.getCols()).append("\n");
+        for (int r = 0; r < dungeon.getRows(); r++) {
+            for (int c = 0; c < dungeon.getCols(); c++) {
+                sb.append(pfx).append("wr_").append(r).append("_").append(c)
+                  .append("=").append(dungeon.hasWallRight(r, c)).append("\n");
+                sb.append(pfx).append("wd_").append(r).append("_").append(c)
+                  .append("=").append(dungeon.hasWallDown(r, c)).append("\n");
+            }
+        }
+        for (int r = 0; r < dungeon.getRows(); r++) {
+            for (int c = 0; c < dungeon.getCols(); c++) {
+                Room room = dungeon.getRoom(r, c);
+                String prefix = pfx + "room_" + r + "_" + c + "_";
+                sb.append(prefix).append("type=").append(room.getType().name()).append("\n");
+                sb.append(prefix).append("visited=").append(room.isVisited()).append("\n");
+                sb.append(prefix).append("cleared=").append(room.isCleared()).append("\n");
+                if (room.hasTrap()) {
+                    sb.append(prefix).append("trap=").append(room.getTrap().name()).append("\n");
+                }
+                List<Enemy> enemies = room.getEnemies();
+                sb.append(prefix).append("enemyCount=").append(enemies.size()).append("\n");
+                for (int i = 0; i < enemies.size(); i++) {
+                    Enemy e = enemies.get(i);
+                    String ep = prefix + "enemy_" + i + "_";
+                    sb.append(ep).append("id=").append(e.getId()).append("\n");
+                    sb.append(ep).append("type=").append(e.getType().name()).append("\n");
+                    sb.append(ep).append("hp=").append(e.getCurrentHp()).append("\n");
+                }
+                List<Item> items = room.getItems();
+                sb.append(prefix).append("itemCount=").append(items.size()).append("\n");
+                for (int i = 0; i < items.size(); i++) {
+                    Item item = items.get(i);
+                    String ip = prefix + "item_" + i + "_";
+                    sb.append(ip).append("id=").append(item.getId()).append("\n");
+                    sb.append(ip).append("name=").append(item.getName()).append("\n");
+                    sb.append(ip).append("type=").append(item.getType().name()).append("\n");
+                    sb.append(ip).append("value=").append(item.getValue()).append("\n");
+                    sb.append(ip).append("rarity=").append(item.getRarity().name()).append("\n");
+                }
+            }
         }
     }
 
@@ -161,25 +180,61 @@ public class JsonPersistenceManager implements PersistenceManager {
             if (qty > 1) item.setQuantity(qty);
             hero.addItem(item);
         }
-        int dRows = getInt(d, "dungeonRows");
-        int dCols = getInt(d, "dungeonCols");
+        Dungeon dungeon = parseDungeon(d, "");
+        GameState state = new GameState(hero, dungeon);
+        int dungeonLevel = getInt(d, "dungeonLevel");
+        if (dungeonLevel > 1) state.setDungeonLevel(dungeonLevel);
+        int maxLevel = getInt(d, "maxLevelReached");
+        if (maxLevel > 1) state.setMaxLevelReached(maxLevel);
+        if (getBool(d, "victory"))       state.setVictory();
+        else if (getBool(d, "gameOver")) state.setGameOver();
+
+        // Restore run statistics
+        state.setStatEnemiesDefeated(getInt(d, "statEnemiesDefeated"));
+        state.setStatDamageDealt(getInt(d, "statDamageDealt"));
+        state.setStatDamageTaken(getInt(d, "statDamageTaken"));
+        state.setStatDungeonsCleared(getInt(d, "statDungeonsCleared"));
+
+        // Load dungeon history (previous floors)
+        int historySize = getInt(d, "historySize");
+        if (historySize > 0) {
+            List<Dungeon> history = new ArrayList<>();
+            for (int hi = 0; hi < historySize; hi++) {
+                history.add(parseDungeon(d, "hist_" + hi + "_"));
+            }
+            state.setDungeonHistory(history);
+        }
+
+        // Load future history (already-visited floors above current)
+        int futureSize = getInt(d, "futureSize");
+        if (futureSize > 0) {
+            List<Dungeon> future = new ArrayList<>();
+            for (int fi = 0; fi < futureSize; fi++) {
+                future.add(parseDungeon(d, "future_" + fi + "_"));
+            }
+            state.setFutureHistory(future);
+        }
+
+        return state;
+    }
+
+    private Dungeon parseDungeon(Map<String, String> d, String pfx) {
+        int dRows = getInt(d, pfx + "dungeonRows");
+        int dCols = getInt(d, pfx + "dungeonCols");
         if (dRows <= 0) dRows = Dungeon.SIZE;
         if (dCols <= 0) dCols = Dungeon.SIZE;
         Dungeon dungeon = new Dungeon(dRows, dCols);
-
-        // Restore wall matrices (all walls present by default — only restore false)
         for (int r = 0; r < dRows; r++) {
             for (int c = 0; c < dCols; c++) {
-                if ("false".equals(d.get("wr_" + r + "_" + c)))
+                if ("false".equals(d.get(pfx + "wr_" + r + "_" + c)))
                     dungeon.removeWallRight(r, c);
-                if ("false".equals(d.get("wd_" + r + "_" + c)))
+                if ("false".equals(d.get(pfx + "wd_" + r + "_" + c)))
                     dungeon.removeWallDown(r, c);
             }
         }
-
         for (int r = 0; r < dRows; r++) {
             for (int c = 0; c < dCols; c++) {
-                String prefix = "room_" + r + "_" + c + "_";
+                String prefix = pfx + "room_" + r + "_" + c + "_";
                 String typeStr = d.get(prefix + "type");
                 if (typeStr == null) continue;
                 Room room = dungeon.getRoom(r, c);
@@ -204,12 +259,7 @@ public class JsonPersistenceManager implements PersistenceManager {
                 }
             }
         }
-        GameState state = new GameState(hero, dungeon);
-        int dungeonLevel = getInt(d, "dungeonLevel");
-        if (dungeonLevel > 1) state.setDungeonLevel(dungeonLevel);
-        if (getBool(d, "victory"))       state.setVictory();
-        else if (getBool(d, "gameOver")) state.setGameOver();
-        return state;
+        return dungeon;
     }
 
     private int getInt(Map<String, String> d, String key) {

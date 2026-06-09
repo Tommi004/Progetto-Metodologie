@@ -35,12 +35,20 @@ public class HeroManager implements HeroController {
 
     private void applyItemEffect(Hero hero, Item item) {
         switch (item.getType()) {
-            case HEALTH_POTION    -> hero.heal(item.getValue());
-            case STRENGTH_POTION  -> hero.boostAttack(item.getValue());
-            case MANA_POTION      -> hero.restoreMana(item.getValue());
-            case SWORD, BOW       -> hero.boostAttack(item.getValue());
-            case STAFF, AMULET    -> hero.boostMagic(item.getValue());
-            case ARMOR            -> hero.boostDefense(item.getValue());
+            case HEALTH_POTION   -> hero.heal(item.getValue());
+            case STRENGTH_POTION -> hero.boostAttack(item.getValue());
+            case MANA_POTION     -> hero.restoreMana(item.getValue());
+            case SWORD, SPEAR    -> hero.boostAttack(item.getValue());
+            case BOW             -> {
+                hero.boostAttack(item.getValue());
+                hero.boostMagic((int) Math.round(item.getValue() * 0.3));
+            }
+            case CROSSBOW        -> {
+                hero.boostAttack(item.getValue());
+                hero.boostMagic(item.getValue());
+            }
+            case STAFF, AMULET   -> hero.boostMagic(item.getValue());
+            case ARMOR, HELMET   -> hero.boostDefense(item.getValue());
         }
     }
 }

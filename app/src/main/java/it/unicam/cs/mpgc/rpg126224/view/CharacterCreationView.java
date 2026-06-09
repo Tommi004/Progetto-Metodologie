@@ -16,14 +16,15 @@ public class CharacterCreationView {
     private final Parent root;
     private final CharacterCreationViewController fxmlController;
 
-    public CharacterCreationView(GameController gameController, Runnable onGameStarted) {
+    public CharacterCreationView(GameController gameController, Runnable onGameStarted,
+                                 Runnable onReturnToMenu) {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource(
                             "/it/unicam/cs/mpgc/rpg126224/fxml/CharacterCreation.fxml"));
             root = loader.load();
             fxmlController = loader.getController();
-            fxmlController.setup(gameController, onGameStarted);
+            fxmlController.setup(gameController, onGameStarted, onReturnToMenu);
         } catch (IOException e) {
             throw new RuntimeException("Failed to load CharacterCreation.fxml", e);
         }

@@ -163,10 +163,20 @@ public class ShopView {
                   "-fx-padding: 5 14; -fx-background-radius: 4;");
 
         buyBtn.setOnAction(e -> {
-            if (gameController.buyShopItem(shopItem)) {
-                // Update gold label
-                updateGoldLabel(goldLabel);
-                // Rebuild rows in-place with updated affordability
+            java.util.List<it.unicam.cs.mpgc.rpg126224.model.Item> result =
+                    gameController.buyShopItem(shopItem);
+            if (result == null) return; // rejected (gold or rarity)
+            updateGoldLabel(goldLabel);
+            if (!result.isEmpty()) {
+                // Weapon swap needed
+                it.unicam.cs.mpgc.rpg126224.model.Item newWeapon = result.get(0);
+                ViewGameDialogFactory.showWeaponSwapDialog(
+                        newWeapon, gameController.getOffensiveWeapons(), chosenId -> {
+                            gameController.swapOffensiveWeapon(chosenId, newWeapon, false);
+                            if (chosenId == null) gameController.getHero().addGold(shopItem.goldCost());
+                            buildItemRows(itemsBox, catalogue, goldLabel);
+                        });
+            } else {
                 buildItemRows(itemsBox, catalogue, goldLabel);
             }
         });

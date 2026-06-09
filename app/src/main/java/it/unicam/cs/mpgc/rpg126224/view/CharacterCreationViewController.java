@@ -32,6 +32,7 @@ public class CharacterCreationViewController {
     @FXML private HBox   classBox;
     @FXML private Label  classInfo;
     @FXML private Button startBtn;
+    @FXML private Button backBtn;
     @FXML private VBox   previewPanel;
     @FXML private Label  previewAvatar;
     @FXML private Label  previewClassName;
@@ -39,6 +40,7 @@ public class CharacterCreationViewController {
 
     private GameController gameController;
     private Runnable       onGameStarted;
+    private Runnable       onReturnToMenu;
     private ToggleGroup    classGroup;
 
     private TranslateTransition avatarFloat;
@@ -69,15 +71,29 @@ public class CharacterCreationViewController {
         });
     }
 
-    public void setup(GameController gameController, Runnable onGameStarted) {
-        this.gameController = gameController;
-        this.onGameStarted  = onGameStarted;
+    public void setup(GameController gameController, Runnable onGameStarted,
+                      Runnable onReturnToMenu) {
+        this.gameController  = gameController;
+        this.onGameStarted   = onGameStarted;
+        this.onReturnToMenu  = onReturnToMenu;
 
         setupParticles();
         setupTitleGlow();
         setupStartButton();
+        setupBackButton();
         updatePreview(HeroClass.WARRIOR);
         animatePreviewEntrance();
+    }
+
+    @FXML
+    private void handleBack() { onReturnToMenu.run(); }
+
+    private void setupBackButton() {
+        String base  = backBtn.getStyle();
+        String hover = base.replace("#606080", "#a0a0c0")
+                          .replace("#303050", "#606080");
+        backBtn.setOnMouseEntered(e -> backBtn.setStyle(hover));
+        backBtn.setOnMouseExited(e  -> backBtn.setStyle(base));
     }
 
     // -------------------------------------------------------------------------
@@ -310,8 +326,8 @@ public class CharacterCreationViewController {
 
     /**
      * Returns normalized stat values [0-100] for HP, ATK, DEF, MAG.
-     * Based on HeroClass base stats: WARRIOR(120hp,18atk,8def,4mag),
-     * MAGE(70hp,6atk,4def,20mag), ARCHER(90hp,14atk,6def,8mag).
+     * Based on HeroClass base stats: WARRIOR(110hp,13atk,10def,2mag),
+     * MAGE(80hp,5atk,3def,15mag), ARCHER(95hp,11atk,3def,8mag).
      */
     private int[] getStatValues(HeroClass hc) {
         return switch (hc) {

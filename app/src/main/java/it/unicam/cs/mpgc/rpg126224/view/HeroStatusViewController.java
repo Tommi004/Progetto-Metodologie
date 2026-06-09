@@ -135,11 +135,11 @@ public class HeroStatusViewController implements ViewRefreshable {
      * <p>Layout (plain text, monospace):</p>
      * <pre>
      *  ╔══════════════════════════╗
-     *  ║  [Rarity] Item Name      ║   ← rarity color
+     *  ║  [Rarity] Item Name      ║  
      *  ║  ─────────────────────   ║
-     *  ║  Type    │ SWORD          ║
-     *  ║  Rarity  │ Rare           ║
-     *  ║  Value   │ +24            ║
+     *  ║  Type    │ SWORD         ║
+     *  ║  Rarity  │ Rare          ║
+     *  ║  Value   │ +24           ║
      *  ║  ─────────────────────   ║
      *  ║  Effect description...   ║
      *  ╚══════════════════════════╝
@@ -204,9 +204,12 @@ public class HeroStatusViewController implements ViewRefreshable {
         return switch (type) {
             case HEALTH_POTION   -> "[HP]";
             case SWORD           -> "[SW]";
+            case SPEAR           -> "[SP]";
             case BOW             -> "[BW]";
+            case CROSSBOW        -> "[XB]";
             case STAFF           -> "[ST]";
             case ARMOR           -> "[AR]";
+            case HELMET          -> "[HM]";
             case AMULET          -> "[AM]";
             case STRENGTH_POTION -> "[SP]";
             case MANA_POTION     -> "[MP]";

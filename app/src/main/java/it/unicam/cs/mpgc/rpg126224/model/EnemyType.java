@@ -5,18 +5,18 @@ package it.unicam.cs.mpgc.rpg126224.model;
  */
 public enum EnemyType {
 
-    GOBLIN(    30,  8,  2,  0,  15,   8, "Goblin"),
-    SKELETON(  40, 10,  4,  0,  20,  12, "Skeleton"),
-    DARK_MAGE( 55,  6,  2, 14,  25,  15, "Dark Mage"),
-    TROLL(    100, 14,  6,  0,  60,  40, "Troll"),
-    ASSASSIN(  85, 16,  4, 10,  80,  55, "Assassin"),
-    DRAGON(   160, 24, 10, 12, 150, 100, "Dragon"),
-    KNIGHT(    70, 14,  8,  0,  40,  28, "Dark Knight"),
-    WITCH(     60,  8,  2, 17,  40,  28, "Witch"),
-    DEMON(     65, 18,  4,  8,  50,  35, "Demon"),
-    LEVIATHAN(200, 28, 12, 14, 200, 140, "Leviathan"),
-    DEMON_LORD(240, 26, 14, 18, 300, 200, "Demon Lord"),
-    DEMON_SOUL(100, 38,  6, 30, 500, 350, "Demon Soul");
+    GOBLIN(    35,  7,  2,  0,  15,   8, "Goblin"),
+    SKELETON(  55,  9,  4,  0,  20,  12, "Skeleton"),
+    DARK_MAGE( 65,  5,  2,  9,  25,  15, "Dark Mage"),
+    TROLL(    120, 12,  5,  0,  60,  40, "Troll"),
+    ASSASSIN( 110, 14,  4,  7,  80,  55, "Assassin"),
+    DRAGON(   190, 20,  9,  9, 150, 100, "Dragon"),
+    KNIGHT(    85, 11,  8,  0,  40,  28, "Dark Knight"),
+    WITCH(     75,  7,  2, 11,  40,  28, "Witch"),
+    DEMON(     80, 14,  3,  6,  50,  35, "Demon"),
+    LEVIATHAN(230, 24, 11, 11, 200, 140, "Leviathan"),
+    DEMON_LORD(270, 22, 13, 14, 300, 200, "Demon Lord"),
+    DEMON_SOUL(130, 30,  5, 22, 500, 350, "Demon Soul");
 
     private final int baseHp, baseAttack, baseDefense, baseMagic, xpReward, goldReward;
     private final String displayName;

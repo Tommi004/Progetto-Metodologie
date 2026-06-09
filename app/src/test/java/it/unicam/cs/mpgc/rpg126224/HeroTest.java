@@ -23,10 +23,10 @@ class HeroTest {
     @Test
     @DisplayName("Warrior starts with correct base stats")
     void warriorBaseStats() {
-        assertEquals(120, warrior.getMaxHp());
-        assertEquals(18,  warrior.getAttack());
-        assertEquals(8,   warrior.getDefense());
-        assertEquals(4,   warrior.getMagic());
+        assertEquals(110, warrior.getMaxHp());
+        assertEquals(13,  warrior.getAttack());
+        assertEquals(10,  warrior.getDefense());
+        assertEquals(2,   warrior.getMagic());
         assertEquals(1,   warrior.getLevel());
         assertTrue(warrior.isAlive());
     }
@@ -34,16 +34,17 @@ class HeroTest {
     @Test
     @DisplayName("Mage starts with correct base stats")
     void mageBaseStats() {
-        assertEquals(70, mage.getMaxHp());
-        assertEquals(20, mage.getMagic());
+        assertEquals(80, mage.getMaxHp());
+        assertEquals(15, mage.getMagic());
+        assertEquals(5,  mage.getAttack());
     }
 
     @Test
     @DisplayName("takeDamage reduces HP correctly applying defense")
     void takeDamageReducesHp() {
         int hpBefore = warrior.getCurrentHp();
-        warrior.takeDamage(20); // effective = 20 - 8 defense = 12
-        assertEquals(hpBefore - 16, warrior.getCurrentHp());
+        warrior.takeDamage(20); // effective = max(1, 20 - 10/2) = 15
+        assertEquals(hpBefore - 15, warrior.getCurrentHp());
     }
 
     @Test
@@ -65,7 +66,7 @@ class HeroTest {
     @Test
     @DisplayName("Gaining enough XP triggers a level-up")
     void levelUpOnXpThreshold() {
-        warrior.gainExperience(30);
+        warrior.gainExperience(30); // xpForNextLevel at lv1 = 30 * 1 = 30
         assertEquals(2, warrior.getLevel());
     }
 
