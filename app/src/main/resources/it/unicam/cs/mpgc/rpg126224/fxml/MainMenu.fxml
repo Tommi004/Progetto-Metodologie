@@ -53,6 +53,11 @@
                            -fx-font-family: Monospace; -fx-font-size: 15;
                            -fx-padding: 13 24; -fx-background-radius: 6; -fx-cursor: hand;"/>
         </VBox>
+
+        <Label text="use WASD to move  •  Mouse to interact"
+               style="-fx-font-family: Monospace; -fx-font-size: 20;
+                      -fx-text-fill: #ffd700;"/>
+
     </VBox>
 
 </StackPane>
