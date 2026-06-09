@@ -11,7 +11,7 @@ combatti nemici, raccogli armi e affronta boss sempre più potenti.
 ### Prerequisiti
 
 - Java 25 (LTS)
-- Gradle 8.10.2
+- Gradle 9.1.0
 
 ### Build
 
