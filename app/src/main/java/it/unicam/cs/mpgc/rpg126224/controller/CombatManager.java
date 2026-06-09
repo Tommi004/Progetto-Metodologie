@@ -10,7 +10,13 @@ import java.util.Random;
 public class CombatManager implements CombatController {
 
     private static final double FLEE_SUCCESS_RATE = 0.45;
-    private final Random random = new Random();
+    private final Random random;
+
+    /** Default constructor — uses a non-deterministic Random. */
+    public CombatManager() { this(new Random()); }
+
+    /** Constructor with injectable Random — useful for deterministic tests. */
+    public CombatManager(Random random) { this.random = random; }
 
     @Override
     public CombatResult executeTurn(Hero hero, Enemy enemy, CombatAction action,

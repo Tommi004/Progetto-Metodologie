@@ -17,7 +17,7 @@ class DungeonTest {
 
     @BeforeEach
     void setUp() {
-        manager = new DungeonManager();
+        manager = new DungeonManager(new java.util.Random(42));
         dungeon = manager.generateDungeon(1);
     }
 

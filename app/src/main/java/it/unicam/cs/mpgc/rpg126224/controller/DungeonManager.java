@@ -27,7 +27,13 @@ public class DungeonManager implements DungeonController {
      *  non-adjacent maze cells, creating shortcuts/loops. */
     private static final int EXTRA_PASSAGE_CHANCE = 30;
 
-    private final Random random = new Random();
+    private final Random random;
+
+    /** Default constructor — uses a non-deterministic Random. */
+    public DungeonManager() { this(new Random()); }
+
+    /** Constructor with injectable Random — useful for deterministic tests. */
+    public DungeonManager(Random random) { this.random = random; }
 
     private final java.util.Map<ItemType, Rarity> foundUniqueItems =
             new java.util.EnumMap<>(ItemType.class);

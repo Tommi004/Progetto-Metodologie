@@ -18,7 +18,8 @@ class CombatTest {
 
     @BeforeEach
     void setUp() {
-        manager = new CombatManager();
+        // Fixed seed makes all random outcomes deterministic across runs
+        manager = new CombatManager(new java.util.Random(42));
         hero    = new Hero("h1", "Aldric", HeroClass.WARRIOR);
         goblin  = new Enemy("e1", EnemyType.GOBLIN);
         dragon  = new Enemy("e2", EnemyType.DRAGON);
