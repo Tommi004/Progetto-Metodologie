@@ -13,13 +13,6 @@ combatti nemici, raccogli armi e affronta boss sempre più potenti.
 - Java 25 (LTS)
 - Gradle 8.10.2
 
-### Istruzioni
-
-```bash
-git clone https://github.com/<username>/Progetto-Metodologie.git
-cd Progetto-Metodologie
-```
-
 ### Build
 
 ```bash
