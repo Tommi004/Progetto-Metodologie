@@ -10,9 +10,12 @@ app/bin/
 .idea/
 *.iml
 
+# VS Code
+.vscode/
+
 # Sistema operativo
 .DS_Store
 Thumbs.db
 
 # Save files
-app/save/*.json
+app/save/
