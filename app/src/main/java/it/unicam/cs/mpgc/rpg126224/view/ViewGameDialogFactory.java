@@ -118,7 +118,7 @@ public class ViewGameDialogFactory {
         techHeader.setFont(Font.font(FONT_MONO, FontWeight.BOLD, 11));
         techHeader.setTextFill(Color.web("#808090"));
 
-        Label techLabel = new Label("Java 25  ·  JavaFX 24  ·  Gradle 8  ·  JUnit 5");
+        Label techLabel = new Label("Java 25  ·  JavaFX 24  ·  Gradle 9  ·  JUnit 5");
         techLabel.setFont(Font.font(FONT_MONO, 11));
         techLabel.setTextFill(Color.web("#606070"));
 
