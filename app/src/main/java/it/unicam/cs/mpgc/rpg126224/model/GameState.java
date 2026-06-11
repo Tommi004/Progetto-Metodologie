@@ -96,7 +96,7 @@ public class GameState {
      */
     public boolean retreatLevel() {
         if (dungeonHistory.isEmpty()) return false;
-        futureHistory.add(0, dungeon);        // push current floor to future
+        futureHistory.add(0, dungeon);     
         this.dungeon = dungeonHistory.remove(dungeonHistory.size() - 1);
         this.dungeonLevel--;
         hero.setPosition(Dungeon.SIZE - 1, Dungeon.SIZE - 1);

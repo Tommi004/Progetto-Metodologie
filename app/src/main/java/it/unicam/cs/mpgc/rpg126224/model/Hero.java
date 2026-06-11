@@ -185,22 +185,22 @@ public class Hero implements GameEntity {
     private void levelUp() {
         level++;
         maxHp += switch (heroClass) {
-            case WARRIOR -> 17;
+            case WARRIOR -> 20;
             case MAGE    -> 10;
-            case ARCHER  -> 13;
+            case ARCHER  -> 15;
         };
         currentHp = maxHp;
 
         switch (heroClass) {
-            case WARRIOR -> { attack += 4; defense += 3; magic  += 1; }
-            case MAGE    -> { attack += 3; defense += 2; magic  += 4; }
-            case ARCHER  -> { attack += 3; defense += 2; magic  += 2; }
+            case WARRIOR -> { attack += 6; defense += 4; magic  += 2; }
+            case MAGE    -> { attack += 4; defense += 2; magic  += 4; }
+            case ARCHER  -> { attack += 4; defense += 3; magic  += 3; }
         }
 
         maxMana += switch (heroClass) {
             case WARRIOR ->  5;
-            case MAGE    -> 15;
-            case ARCHER  ->  8;
+            case MAGE    -> 20;
+            case ARCHER  -> 10;
         };
         currentMana = maxMana;
     }

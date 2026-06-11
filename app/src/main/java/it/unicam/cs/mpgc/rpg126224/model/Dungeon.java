@@ -23,8 +23,8 @@ public class Dungeon {
     public static final int SIZE = 8;
 
     private final Room[][]    grid;
-    private final boolean[][] wallRight;  // wall between (r,c) and (r, c+1)
-    private final boolean[][] wallDown;   // wall between (r,c) and (r+1, c)
+    private final boolean[][] wallRight;  
+    private final boolean[][] wallDown;   
     private final int rows;
     private final int cols;
 

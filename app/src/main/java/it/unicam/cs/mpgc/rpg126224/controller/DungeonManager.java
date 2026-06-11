@@ -253,13 +253,11 @@ public class DungeonManager implements DungeonController {
             default -> ItemType.MANA_POTION;
         };
 
-        // Potions are always COMMON — rarity only applies to equipment
         boolean isPotion = !UNIQUE_ITEMS.contains(type);
 
         if (isPotion) {
             rarity = Rarity.COMMON;
         } else {
-            // Equipment: enforce unique-item rule (only upgrade if higher rarity)
             Rarity existing = foundUniqueItems.get(type);
             if (existing != null && !rarity.isHigherThan(existing)) {
                 type   = random.nextBoolean() ? ItemType.HEALTH_POTION : ItemType.MANA_POTION;
@@ -269,12 +267,11 @@ public class DungeonManager implements DungeonController {
             }
         }
 
-        int baseValue = switch (type) {
-            case HEALTH_POTION   -> 30 + level * 10;
-            case MANA_POTION     -> 20 + level * 8;
-            default              -> 5  + level * 3;
+        int value = switch (type) {
+            case HEALTH_POTION   -> 60;
+            case MANA_POTION     -> 40;
+            default              -> 20;
         };
-        int value = (int) Math.round(baseValue * rarity.getMultiplier());
 
         String baseName = switch (type) {
             case SWORD           -> "Sword";

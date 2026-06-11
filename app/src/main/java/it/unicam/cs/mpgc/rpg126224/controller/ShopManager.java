@@ -25,14 +25,14 @@ public class ShopManager implements ShopController {
         List<ShopItem> catalogue = new ArrayList<>();
 
         // ── Potions (always available, price scales with floor) ──────────
-        int hpValue  = 30 + level * 10;
+        int hpValue  = 60;
         int hpCost   = 15 + level * 5;
         catalogue.add(new ShopItem(
                 new Item(UUID.randomUUID().toString(),
                         "Health Potion", ItemType.HEALTH_POTION, hpValue),
                 hpCost));
 
-        int mpValue = 20 + level * 8;
+        int mpValue = 40;
         int mpCost  = 12 + level * 4;
         catalogue.add(new ShopItem(
                 new Item(UUID.randomUUID().toString(),

@@ -13,18 +13,20 @@ class HeroTest {
 
     private Hero warrior;
     private Hero mage;
+    private Hero archer;
 
     @BeforeEach
     void setUp() {
         warrior = new Hero("w1", "Aldric", HeroClass.WARRIOR);
         mage    = new Hero("m1", "Lyra",   HeroClass.MAGE);
+        archer   = new Hero("m1", "Lyra",   HeroClass.ARCHER);
     }
 
     @Test
     @DisplayName("Warrior starts with correct base stats")
     void warriorBaseStats() {
-        assertEquals(110, warrior.getMaxHp());
-        assertEquals(13,  warrior.getAttack());
+        assertEquals(120, warrior.getMaxHp());
+        assertEquals(16,  warrior.getAttack());
         assertEquals(10,  warrior.getDefense());
         assertEquals(2,   warrior.getMagic());
         assertEquals(1,   warrior.getLevel());
@@ -34,9 +36,23 @@ class HeroTest {
     @Test
     @DisplayName("Mage starts with correct base stats")
     void mageBaseStats() {
-        assertEquals(80, mage.getMaxHp());
-        assertEquals(15, mage.getMagic());
-        assertEquals(5,  mage.getAttack());
+        assertEquals(90, mage.getMaxHp());
+        assertEquals(6,  mage.getAttack());
+        assertEquals(4,  mage.getDefense());
+        assertEquals(16,   mage.getMagic());
+        assertEquals(1,   mage.getLevel());
+        assertTrue(mage.isAlive());
+    }
+
+    @Test
+    @DisplayName("Archer starts with correct base stats")
+    void archerBaseStats() {
+        assertEquals(100, archer.getMaxHp());
+        assertEquals(12,  archer.getAttack());
+        assertEquals(6,  archer.getDefense());
+        assertEquals(10,   archer.getMagic());
+        assertEquals(1,   archer.getLevel());
+        assertTrue(archer.isAlive());
     }
 
     @Test

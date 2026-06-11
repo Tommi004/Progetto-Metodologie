@@ -238,7 +238,7 @@ public class CombatManager implements CombatController {
         switch (item.getType()) {
             case HEALTH_POTION   -> hero.heal(item.getValue());
             case MANA_POTION     -> hero.restoreMana(item.getValue());
-            case STRENGTH_POTION -> hero.boostAttack(item.getValue()); // temp: reversed at combat end
+            case STRENGTH_POTION -> hero.boostAttack(item.getValue()); 
         }
     }
 }
