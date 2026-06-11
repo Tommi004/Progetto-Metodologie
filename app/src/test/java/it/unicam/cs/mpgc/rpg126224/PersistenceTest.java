@@ -5,8 +5,6 @@ import it.unicam.cs.mpgc.rpg126224.model.*;
 import it.unicam.cs.mpgc.rpg126224.persistence.FilePersistenceManager;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
-
-import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -29,10 +27,6 @@ class PersistenceTest {
     @BeforeEach
     void setUp() throws Exception {
         pm = new FilePersistenceManager();
-        // Point the save file at the temp directory via reflection
-        Field f = FilePersistenceManager.class.getDeclaredField("SAVE_FILE");
-        // SAVE_FILE is static final — we test via a subclass path trick instead
-        // so we use the default path and clean up after each test
     }
 
     @AfterEach

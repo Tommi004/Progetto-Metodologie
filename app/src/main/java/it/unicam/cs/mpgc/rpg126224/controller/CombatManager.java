@@ -235,10 +235,19 @@ public class CombatManager implements CombatController {
     }
 
     private void applyPotionEffect(Hero hero, Item item) {
-        switch (item.getType()) {
-            case HEALTH_POTION   -> hero.heal(item.getValue());
-            case MANA_POTION     -> hero.restoreMana(item.getValue());
-            case STRENGTH_POTION -> hero.boostAttack(item.getValue()); 
-        }
+    switch (item.getType()) {
+
+        case HEALTH_POTION   -> hero.heal(item.getValue());
+
+        case MANA_POTION     -> hero.restoreMana(item.getValue());
+
+        case STRENGTH_POTION -> hero.boostAttack(item.getValue());
+
+        case SWORD, SPEAR, BOW, CROSSBOW -> hero.boostAttack(item.getValue());
+
+        case STAFF, AMULET -> hero.boostMagic(item.getValue());
+
+        case ARMOR, HELMET -> hero.boostDefense(item.getValue());
     }
+}
 }

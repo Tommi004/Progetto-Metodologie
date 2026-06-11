@@ -7,7 +7,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.CycleMethod;
@@ -41,11 +40,6 @@ public class DungeonMapView implements ViewRefreshable {
     private final Canvas               canvas;
     private final Parent               root;
     private final DungeonMapViewController fxmlController;
-
-    // Hero's animated position (in pixels, relative to canvas)
-    private double heroX;
-    private double heroY;
-    private TranslateTransition moveAnim;
 
     public DungeonMapView(GameController controller) {
         this.controller = controller;
@@ -309,40 +303,6 @@ public class DungeonMapView implements ViewRefreshable {
                     gc.fillRect(x, y + CELL, CELL, GAP);
             }
         }
-    }
-
-    /**
-     * Returns the wall color as the brighter stroke color between two
-     * adjacent rooms, so walls inherit the glow of the more notable room.
-     */
-    private String brighterWallColor(Room a, Room b) {
-        return pickBrighter(getRoomStrokeColor(a), getRoomStrokeColor(b));
-    }
-
-    /** Returns the border/stroke color used for this room in drawVisitedCell. */
-    private String getRoomStrokeColor(Room room) {
-        return switch (room.getType()) {
-            case START    -> "#2a6a2a";
-            case EXIT     -> "#ffd700";
-            case TREASURE -> room.isCleared() ? "#2a2810" : "#5a4800";
-            case ENEMY    -> room.isCleared() ? "#1a3a1a" : "#5a1515";
-            case SHOP     -> room.isCleared() ? "#2a2810" : "#5a5000";
-            default       -> "#1c1c38";
-        };
-    }
-
-    /**
-     * Picks the brighter of two hex colors by comparing their average RGB.
-     */
-    private String pickBrighter(String hexA, String hexB) {
-        return brightness(hexA) >= brightness(hexB) ? hexA : hexB;
-    }
-
-    private int brightness(String hex) {
-        int r = Integer.parseInt(hex.substring(1, 3), 16);
-        int g = Integer.parseInt(hex.substring(3, 5), 16);
-        int b = Integer.parseInt(hex.substring(5, 7), 16);
-        return r + g + b;
     }
 
     // -------------------------------------------------------------------------
@@ -609,7 +569,6 @@ public class DungeonMapView implements ViewRefreshable {
 
     private void drawCenteredText(GraphicsContext gc, String text,
                                   double x, double y, double w, double h) {
-        var fm = gc.getFont();
         // Approximate vertical centering
         gc.fillText(text, x + w / 2.0 - estimateTextWidth(text, gc) / 2.0,
                 y + h / 2.0 + 7);

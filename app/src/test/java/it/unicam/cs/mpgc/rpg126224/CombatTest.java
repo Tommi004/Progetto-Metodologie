@@ -50,7 +50,7 @@ class CombatTest {
     @Test
     @DisplayName("USE_POTION with no potions returns message")
     void potionWithNoInventory() {
-        CombatResult result = manager.executeTurn(hero, goblin, CombatAction.USE_POTION, null);
+        CombatResult result = manager.executeTurn(hero, dragon, CombatAction.USE_POTION, null);
         assertTrue(result.message().toLowerCase().contains("no") ||
                 result.message().toLowerCase().contains("potion"));
     }

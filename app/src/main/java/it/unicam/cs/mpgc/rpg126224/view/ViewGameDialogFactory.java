@@ -106,7 +106,7 @@ public class ViewGameDialogFactory {
         infoBox.setMaxWidth(320);
         addCreditRow(infoBox, "Developer",  "Tommaso Leonardi",     "#e0e0ff");
         addCreditRow(infoBox, "Matricola",  "126224",               "#e0e0ff");
-        addCreditRow(infoBox, "Course",     "Metodologie di Prog.", "#c0c0e0");
+        addCreditRow(infoBox, "Course",     "Metodologie di Programmazione", "#c0c0e0");
         addCreditRow(infoBox, "University", "UNICAM — Camerino",    "#c0c0e0");
         addCreditRow(infoBox, "A.Y.",       "2025 / 2026",          "#c0c0e0");
 
